@@ -9,7 +9,7 @@ int main()
 
     QuantumDot qdot(4);
     qdot.getQuantumDotStates();
-    Coulomb_HO(double &hw, int &ni, int &mi, int &nj, int &mj, int &nk, int &mk, int &nl, int &ml)
+    //Coulomb_HO(double &hw, int &ni, int &mi, int &nj, int &mj, int &nk, int &mk, int &nl, int &ml)
 }
 
 

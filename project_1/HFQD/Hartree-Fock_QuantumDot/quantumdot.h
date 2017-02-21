@@ -14,7 +14,8 @@ private:
     std::vector<QuantumState> m_shells;
     int m_sm = -1;
     const double m_s = 0.5;
-    void setUpStates(int);
+    void setUpStatesCartesian(int);
+    void setUpStatesPolar(int);
 };
 
 #endif // QUANTUMDOT_H

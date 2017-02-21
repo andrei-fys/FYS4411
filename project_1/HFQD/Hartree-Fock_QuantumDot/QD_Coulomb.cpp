@@ -1,5 +1,6 @@
 #include "Coulomb_Functions.hpp"
 
+/*
 int main(int argc, char * argv[])
 {
   if(argc != 10){ std::cerr << "Wrong Input: should be ./QD_Coulomb  hw  n1  ml1  n2  ml2  n3  ml3  n4  ml4" << std::endl; exit(1); }
@@ -19,3 +20,4 @@ int main(int argc, char * argv[])
   
   return 0;
 }
+*/
