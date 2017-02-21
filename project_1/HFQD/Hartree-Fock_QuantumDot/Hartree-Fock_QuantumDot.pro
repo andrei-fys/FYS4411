@@ -5,9 +5,12 @@ CONFIG -= qt
 
 SOURCES += main.cpp \
     quantumdot.cpp \
-    quantumstate.cpp
+    quantumstate.cpp \
+    Coulomb_Functions.cpp \
+    QD_Coulomb.cpp
 
 HEADERS += \
     quantumdot.h \
-    quantumstate.h
+    quantumstate.h \
+    Coulomb_Functions.hpp
 
