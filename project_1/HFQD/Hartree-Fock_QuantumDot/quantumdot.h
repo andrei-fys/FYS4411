@@ -3,6 +3,7 @@
 #include <vector>
 #include <iostream>
 #include "quantumstate.h"
+#include "Coulomb_Functions.hpp"
 
 class QuantumDot
 {
@@ -10,6 +11,8 @@ public:
     QuantumDot(int);
     int EnergyCutOff;
     void getQuantumDotStates();
+    double computeCoulombInteractionPolar();
+    void getQuantumDotStatesNumber();
 private:
     std::vector<QuantumState> m_shells;
     int m_sm = -1;

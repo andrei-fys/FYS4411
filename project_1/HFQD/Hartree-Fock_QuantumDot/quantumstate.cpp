@@ -5,9 +5,9 @@ QuantumState::QuantumState()
 
 }
 
-void QuantumState::set(int nx, int ny, int sm, double s){
-    m_nx = nx;
-    m_ny = ny;
+void QuantumState::set(int n, int m, int sm, double s){
+    m_n = n;
+    m_m = m;
     m_sm = sm;
     m_s = s;
 }
