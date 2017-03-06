@@ -1,12 +1,13 @@
 #include "quantumdot.h"
 #include <iostream>
-#include <vector>
+//#include <vector>
+//#include <armadillo>
 
 using namespace std;
 
-QuantumDot::QuantumDot(int EnergyCutOff){
+QuantumDot::QuantumDot(int EnergyCutOff, double h_omega, int ParticlesNumber){
     //setUpStatesCartesian(EnergyCutOff);
-    setUpStatesPolar(EnergyCutOff);
+    setUpStatesPolar(EnergyCutOff, h_omega, ParticlesNumber);
 
 }
 
@@ -28,8 +29,10 @@ void QuantumDot::setUpStatesCartesian(int EnergyCutOff) {
     }
 }
 
-void QuantumDot::setUpStatesPolar(int EnergyCutOff) {
+void QuantumDot::setUpStatesPolar(int EnergyCutOff, double h_omega, int ParticlesNumber) {
     //QuantumState * m_q_state = new QuantumState;
+    homega = h_omega;
+    NumberOfParticles = ParticlesNumber;
     QuantumState m_q_state;
     vector<int> oddShells;
     int n, m;
@@ -66,65 +69,163 @@ void QuantumDot::setUpStatesPolar(int EnergyCutOff) {
 
 }
 
-double QuantumDot::computeCoulombInteractionPolar(){
-    for(QuantumState quantum_state : m_shells){
-        int p_n = quantum_state.n();
-        int p_m = quantum_state.m();
-        int p_sm = quantum_state.sm();
-        int p_s = quantum_state.s();
-        for(QuantumState quantum_state : m_shells){
-            int q_n = quantum_state.n();
-            int q_m = quantum_state.m();
-            int q_sm = quantum_state.sm();
-            int q_s = quantum_state.s();
-            for(QuantumState quantum_state : m_shells){
-                int r_n = quantum_state.n();
-                int r_m = quantum_state.m();
-                int r_sm = quantum_state.sm();
-                int r_s = quantum_state.s();
-                for(QuantumState quantum_state : m_shells){
-                    int s_n = quantum_state.n();
-                    int s_m = quantum_state.m();
-                    int s_sm = quantum_state.sm();
-                    int s_s = quantum_state.s();
-                    if (p_m + q_m == r_m + s_m){
-                        if (p_sm + q_sm == r_sm + s_sm){
-                            if (p_sm == r_sm && q_sm == s_sm){
-                                //double TBME = Coulomb_HO(1.0, p_n, p_sm, q_n, q_sm, r_n, r_sm, s_n, s_sm);
-                                //cout << setprecision(12);
-                                //cout << "< " << p_n << "," << p_sm << " ; " << q_n << "," << q_sm << " || V || " << r_n << "," << r_sm << " ; " << s_n << "," << s_sm << " > = " << TBME << std::endl;
-                                cout << "< " << p_n << "," << p_sm << " ; " << q_n << "," << q_sm << " || V || " << r_n << "," << r_sm << " ; " << s_n << "," << s_sm << " > = " << endl;
-                            } else {
-                                continue;
-                                //cout << "third check 0 " << endl;
-                            }
-                        } else {
-                            continue;
-                            //cout << "second check 0 " << endl;
-                        }
+void QuantumDot::setCoefficientMatrix(arma::mat CoefficientMatrix){
+     m_C = CoefficientMatrix;
+}
+
+arma::mat QuantumDot::computeDensityMatrix(){
+    int NumberOfStates = m_shells.size();
+    //arma::mat C(NumberOfStates, NumberOfStates);
+    //C.eye();
+    arma::mat DensityMatrix(NumberOfStates, NumberOfStates);
+    double sum = 0.0;
+    for(int k = 0; k < NumberOfStates; k++) {
+        for(int l = 0; l < NumberOfStates; l++) {
+            for (int i=0; i < NumberOfParticles; i++) {
+                    sum += m_C(k,i)*m_C(l,i);
+                    DensityMatrix(k, l) = sum;
+            }
+        }
+    }
+    return DensityMatrix;
+}
+
+
+
+double QuantumDot::CalculateNonIntEnergy(int n, int m){
+    return (2.0*(double)n + (double)abs(m) + 1.0)*homega;
+}
+
+void QuantumDot::computeHFmatrix(arma::mat DensityMatrix){
+    int NumberOfStates = m_shells.size();
+    //arma::mat HF(NumberOfStates, NumberOfStates);
+    m_HF.zeros(NumberOfStates,NumberOfStates);
+    double FockElement;
+    //arma::mat C(NumberOfStates, NumberOfStates);
+    //C.eye();
+    //setCoefficientMatrix(C);
+    //arma::mat DensityMatrix = computeDensityMatrix();
+
+
+    /*arma::mat C(NumberOfStates, NumberOfStates);
+    C.eye();
+    arma::mat DensityMatrix(NumberOfStates, NumberOfStates);
+    DensityMatrix.zeros();
+
+    double sum = 0.0;
+    for(int k = 0; k < NumberOfStates; k++) {
+    //QuantumState quantum_state_gama1 = m_shells.at(k);
+    //int gama_n = quantum_state_gama1.n();
+    //int gama_m = quantum_state_gama1.m();
+    //int gama_sm = quantum_state_gama1.sm();
+    //int gama_s = quantum_state_gama1.s();
+        for(int l = 0; l < NumberOfStates; l++) {
+            //QuantumState quantum_state_delta1 = m_shells.at(l);
+            //int delta_n = quantum_state_delta1.n();
+            //int delta_m = quantum_state_delta1.m();
+            //int delta_sm = quantum_state_delta1.sm();
+            //int delta_s = quantum_state_delta1.s();
+                for (int i=0; i <NumberOfParticles; i++){
+                    sum += C(k,i)*C(l,i);
+                    DensityMatrix(k, l) = sum;
+                }
+            }
+      }
+*/
+    for(int i = 0; i < NumberOfStates; i++) {
+        QuantumState quantum_state_alpha = m_shells.at(i);
+        int alpha_n = quantum_state_alpha.n();
+        int alpha_m = quantum_state_alpha.m();
+        int alpha_sm = quantum_state_alpha.sm();
+        //int alpha_s = quantum_state_alpha.s();
+        double nonInteractingPart = CalculateNonIntEnergy( alpha_n, alpha_m);
+        m_HF(i, i) = nonInteractingPart;
+        for(int j = 0; j < NumberOfStates; j++) {
+            QuantumState quantum_state_beta = m_shells.at(j);
+            int beta_n = quantum_state_beta.n();
+            //int beta_m = quantum_state_beta.m();
+            int beta_sm = quantum_state_beta.sm();
+            //int beta_s = quantum_state_beta.s();
+            for(int k = 0; k < NumberOfStates; k++) {
+                QuantumState quantum_state_gama = m_shells.at(k);
+                int gama_n = quantum_state_gama.n();
+                //int gama_m = quantum_state_gama.m();
+                int gama_sm = quantum_state_gama.sm();
+                //int gama_s = quantum_state_gama.s();
+                for(int l = 0; l < NumberOfStates; l++) {
+                    QuantumState quantum_state_delta = m_shells.at(l);
+                    int delta_n = quantum_state_delta.n();
+                    //int delta_m = quantum_state_delta.m();
+                    int delta_sm = quantum_state_delta.sm();
+                    //int delta_s = quantum_state_delta.s();
+                    if (alpha_sm == beta_sm && gama_sm == delta_sm){
+                        double TBME = Coulomb_HO(homega, alpha_n, alpha_sm, beta_n, beta_sm, gama_n, gama_sm, delta_n, delta_sm);
+                        //cout << setprecision(12);
+                        //cout << "< " << alpha_n << "," << alpha_sm << " ; " << beta_n << "," << gama_sm << " || V || " << gama_n << "," << gama_sm << " ; " << delta_n << "," << delta_sm << " > = " << TBME << std::endl;
+                        //cout << "< " << p_n << "," << p_sm << " ; " << q_n << "," << q_sm << " || V || " << r_n << "," << r_sm << " ; " << s_n << "," << s_sm << " > = " << endl;
+                        //HF(index_1,index_2) += density()*TBME;
+
+                        FockElement += DensityMatrix(k,l)*TBME;
+                        m_HF(i, j) += FockElement;
                     } else {
-                        continue;
-                        //cout << "first check 0 " << endl;
+                        m_HF(i, j) = 0.0;
                     }
                 }
             }
         }
-
     }
-return 12.3;
+    //m_HF.print();
 }
+
+
+double QuantumDot::computeHartreeFockEnergyDifference(){
+    return ((arma::accu(abs(eigval - eigval_previous)))/(double)m_shells.size());
+    //return energy_diff;
+}
+
+void QuantumDot::computeHartreeFockEnergy(){
+    cout << (arma::accu((eigval))/(double)m_shells.size()) << endl;
+}
+
+
+void QuantumDot::applyHartreeFockMethod(){
+    int NumberOfStates = m_shells.size();
+    arma::mat C(NumberOfStates, NumberOfStates);
+
+    C.eye();
+    setCoefficientMatrix(C);
+    double difference = 10; //dummy value to handle first iteration
+    double epsilon = 10e-7;
+
+    //arma::cx_vec eigval;
+    //arma::cx_mat eigvec;
+    eigval_previous.zeros(NumberOfStates);
+    int i = 0;
+    while (epsilon < difference && i < 1000){
+        arma::mat x_DensityMatrix = computeDensityMatrix();
+        computeHFmatrix(x_DensityMatrix);
+        arma::eig_sym(eigval, eigvec, m_HF);
+        eigval.print();
+        setCoefficientMatrix(eigvec);
+        difference = computeHartreeFockEnergyDifference();
+        eigval_previous = eigval;
+        i++;
+        computeHartreeFockEnergy();
+    }
+}
+
 
 void QuantumDot::getQuantumDotStates(){
     for(QuantumState quantum_state : m_shells){
-        cout << quantum_state.n() << endl;
-        cout << quantum_state.m() << endl;
-        cout << quantum_state.sm() << endl;
-        cout << quantum_state.s() << endl;
+        cout << "n = " << quantum_state.n() << endl;
+        cout << "m = " <<quantum_state.m() << endl;
+        cout << "sm = " <<quantum_state.sm() << endl;
+        cout << "s = " <<quantum_state.s() << endl;
         cout << "-----------------" << endl;
     }
 }
 
 void QuantumDot::getQuantumDotStatesNumber(){
-    cout << m_shells.size() << endl;
+    cout << "Number of available states of system is " << m_shells.size() << endl;
 }
 
