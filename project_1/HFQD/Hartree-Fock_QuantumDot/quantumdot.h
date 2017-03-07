@@ -30,6 +30,7 @@ private:
     arma::mat eigvec;
     void setUpStatesCartesian(int);
     void setUpStatesPolar(int, double h_omega, int);
+    void setUpStatesPolarSorted(int, double h_omega, int);
     void setCoefficientMatrix(arma::mat);
     void computeHFmatrix(arma::mat);
     arma::mat computeDensityMatrix();

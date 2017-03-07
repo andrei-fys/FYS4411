@@ -11,19 +11,10 @@ int main()
     int HOStrenth = 1;
     int NumberOfElectrons = 6;
     QuantumDot qdot(NumberOfShells, HOStrenth, NumberOfElectrons);
-    //qdot.applytest();
-    qdot.applyHartreeFockMethod();
-
-    //debug
     //qdot.getQuantumDotStates();
-    //qdot.getQuantumDotStatesNumber();
 
-    //qdot.computeDensityMatrix();
-    //qdot.computeHFmatrix();
 
-    //qdot.diagonalizeHFMatrix();
-    //qdot.computeCoulombInteractionPolar();
-
+    qdot.applyHartreeFockMethod();
 
 }
 
