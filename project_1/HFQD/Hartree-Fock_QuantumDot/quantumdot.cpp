@@ -147,15 +147,17 @@ arma::mat QuantumDot::computeDensityMatrix(){
     //arma::mat C(NumberOfStates, NumberOfStates);
     //C.eye();
     arma::mat DensityMatrix(NumberOfStates, NumberOfStates);
-    double sum = 0.0;
+
     for(int k = 0; k < NumberOfStates; k++) {
         for(int l = 0; l < NumberOfStates; l++) {
+            double sum = 0.0;
             for (int i=0; i < NumberOfParticles; i++) {
                     sum += m_C(k,i)*m_C(l,i);
                     DensityMatrix(k, l) = sum;
             }
         }
     }
+    //DensityMatrix.print();
     return DensityMatrix;
 }
 
@@ -170,77 +172,48 @@ void QuantumDot::computeHFmatrix(arma::mat DensityMatrix){
     //arma::mat HF(NumberOfStates, NumberOfStates);
     m_HF.zeros(NumberOfStates,NumberOfStates);
     double FockElement;
-    //arma::mat C(NumberOfStates, NumberOfStates);
-    //C.eye();
-    //setCoefficientMatrix(C);
-    //arma::mat DensityMatrix = computeDensityMatrix();
 
-
-    /*arma::mat C(NumberOfStates, NumberOfStates);
-    C.eye();
-    arma::mat DensityMatrix(NumberOfStates, NumberOfStates);
-    DensityMatrix.zeros();
-
-    double sum = 0.0;
-    for(int k = 0; k < NumberOfStates; k++) {
-    //QuantumState quantum_state_gama1 = m_shells.at(k);
-    //int gama_n = quantum_state_gama1.n();
-    //int gama_m = quantum_state_gama1.m();
-    //int gama_sm = quantum_state_gama1.sm();
-    //int gama_s = quantum_state_gama1.s();
-        for(int l = 0; l < NumberOfStates; l++) {
-            //QuantumState quantum_state_delta1 = m_shells.at(l);
-            //int delta_n = quantum_state_delta1.n();
-            //int delta_m = quantum_state_delta1.m();
-            //int delta_sm = quantum_state_delta1.sm();
-            //int delta_s = quantum_state_delta1.s();
-                for (int i=0; i <NumberOfParticles; i++){
-                    sum += C(k,i)*C(l,i);
-                    DensityMatrix(k, l) = sum;
-                }
-            }
-      }
-*/
     for(int i = 0; i < NumberOfStates; i++) {
         QuantumState quantum_state_alpha = m_shells.at(i);
         int alpha_n = quantum_state_alpha.n();
         int alpha_m = quantum_state_alpha.m();
         int alpha_sm = quantum_state_alpha.sm();
         //int alpha_s = quantum_state_alpha.s();
-        double nonInteractingPart = CalculateNonIntEnergy( alpha_n, alpha_m);
-        m_HF(i, i) = nonInteractingPart;
         for(int j = 0; j < NumberOfStates; j++) {
             QuantumState quantum_state_beta = m_shells.at(j);
             int beta_n = quantum_state_beta.n();
-            //int beta_m = quantum_state_beta.m();
+            int beta_m = quantum_state_beta.m();
             int beta_sm = quantum_state_beta.sm();
             //int beta_s = quantum_state_beta.s();
             for(int k = 0; k < NumberOfStates; k++) {
                 QuantumState quantum_state_gama = m_shells.at(k);
                 int gama_n = quantum_state_gama.n();
-                //int gama_m = quantum_state_gama.m();
+                int gama_m = quantum_state_gama.m();
                 int gama_sm = quantum_state_gama.sm();
                 //int gama_s = quantum_state_gama.s();
                 for(int l = 0; l < NumberOfStates; l++) {
                     QuantumState quantum_state_delta = m_shells.at(l);
                     int delta_n = quantum_state_delta.n();
-                    //int delta_m = quantum_state_delta.m();
+                    int delta_m = quantum_state_delta.m();
                     int delta_sm = quantum_state_delta.sm();
                     //int delta_s = quantum_state_delta.s();
                     if (alpha_sm == beta_sm && gama_sm == delta_sm){
-                        double TBME = Coulomb_HO(homega, alpha_n, alpha_sm, beta_n, beta_sm, gama_n, gama_sm, delta_n, delta_sm);
-                        //cout << setprecision(12);
-                        //cout << "< " << alpha_n << "," << alpha_sm << " ; " << beta_n << "," << gama_sm << " || V || " << gama_n << "," << gama_sm << " ; " << delta_n << "," << delta_sm << " > = " << TBME << std::endl;
-                        //cout << "< " << p_n << "," << p_sm << " ; " << q_n << "," << q_sm << " || V || " << r_n << "," << r_sm << " ; " << s_n << "," << s_sm << " > = " << endl;
-                        //HF(index_1,index_2) += density()*TBME;
+                        double TBME = 0.0;
+                        TBME = Coulomb_HO(homega, alpha_n, alpha_m, gama_n, gama_m, beta_n, beta_m,  delta_n, delta_m);
+
 
                         FockElement += DensityMatrix(k,l)*TBME;
-                        m_HF(i, j) += FockElement;
+
                     } else {
-                        m_HF(i, j) = 0.0;
+                        FockElement += 0.0;
                     }
                 }
             }
+            if (i == j) {
+                m_HF(i, i) += CalculateNonIntEnergy( alpha_n, alpha_m);
+            }
+            m_HF(i, j) += FockElement;
+            FockElement = 0.0;
         }
     }
     //m_HF.print();
@@ -255,7 +228,7 @@ double QuantumDot::computeHartreeFockEnergyDifference(){
 void QuantumDot::computeHartreeFockEnergy(){
     //cout << (arma::accu((eigval))/(double)m_shells.size()) << endl;
     int NumberOfStates = m_shells.size();
-    int FermiLevel = 3;
+    int FermiLevel = NumberOfParticles;
     //m_HF.zeros(NumberOfStates,NumberOfStates);
     double selfConsistentFIeldIterations;
     double ExchangePart;
@@ -268,32 +241,32 @@ void QuantumDot::computeHartreeFockEnergy(){
 
     for(int a = 0; a < FermiLevel; a++) {
         for(int b = 0; b < FermiLevel; b++) {
-            for(int i = 0; i < NumberOfParticles; i++) {
+            for(int i = 0; i < NumberOfStates; i++) {
                 QuantumState quantum_state_alpha = m_shells.at(i);
                 int alpha_n = quantum_state_alpha.n();
-                //int alpha_m = quantum_state_alpha.m();
+                int alpha_m = quantum_state_alpha.m();
                 int alpha_sm = quantum_state_alpha.sm();
-                for(int j = 0; j < NumberOfParticles; j++) {
+                for(int j = 0; j < NumberOfStates; j++) {
                     QuantumState quantum_state_beta = m_shells.at(j);
                     int beta_n = quantum_state_beta.n();
-                    //int beta_m = quantum_state_beta.m();
+                    int beta_m = quantum_state_beta.m();
                     int beta_sm = quantum_state_beta.sm();
                     //int beta_s = quantum_state_beta.s();
-                    for(int k = 0; k < NumberOfParticles; k++) {
+                    for(int k = 0; k < NumberOfStates; k++) {
                         QuantumState quantum_state_gama = m_shells.at(k);
                         int gama_n = quantum_state_gama.n();
-                        //int gama_m = quantum_state_gama.m();
+                        int gama_m = quantum_state_gama.m();
                         int gama_sm = quantum_state_gama.sm();
                         //int gama_s = quantum_state_gama.s();
-                        for(int l = 0; l < NumberOfParticles; l++) {
+                        for(int l = 0; l < NumberOfStates; l++) {
                             QuantumState quantum_state_delta = m_shells.at(l);
                             int delta_n = quantum_state_delta.n();
-                            //int delta_m = quantum_state_delta.m();
+                            int delta_m = quantum_state_delta.m();
                             int delta_sm = quantum_state_delta.sm();
                             //int delta_s = quantum_state_delta.s();
                             if (alpha_sm == beta_sm && gama_sm == delta_sm){
-                                double TBME = Coulomb_HO(homega, alpha_n, alpha_sm, beta_n, beta_sm, gama_n, gama_sm, delta_n, delta_sm);
-                                selfConsistentFIeldIterations += m_C(a,i)*m_C(a,j)*m_C(b,k)*m_C(b,l)*TBME;
+                                double TBME = Coulomb_HO(homega, alpha_n, alpha_m, gama_n, gama_m, beta_n, beta_m,  delta_n, delta_m);
+                                selfConsistentFIeldIterations = m_C(a,i)*m_C(a,k)*m_C(b,j)*m_C(b,l)*TBME;
                                 ExchangePart += selfConsistentFIeldIterations;
                             } else {
                                 ExchangePart += 0.0;
@@ -326,7 +299,7 @@ void QuantumDot::applyHartreeFockMethod(){
     //arma::cx_mat eigvec;
     eigval_previous.zeros(NumberOfStates);
     int i = 0;
-    while (epsilon < difference && i < 10000){
+    while (epsilon < difference && i < 1000){
         arma::mat x_DensityMatrix = computeDensityMatrix();
         computeHFmatrix(x_DensityMatrix);
         arma::eig_sym(eigval, eigvec, m_HF);
@@ -338,7 +311,7 @@ void QuantumDot::applyHartreeFockMethod(){
 
     }
     eigval.print();
-    eigvec.print();
+    //eigvec.print();
     computeHartreeFockEnergy();
 }
 
