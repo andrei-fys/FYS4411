@@ -37,6 +37,7 @@ private:
     double CalculateNonIntEnergy(int n, int m);
     double computeHartreeFockEnergyDifference();
     void computeHartreeFockEnergy();
+    void computeHartreeFockEnergyDensity(arma::mat);
 
 };
 

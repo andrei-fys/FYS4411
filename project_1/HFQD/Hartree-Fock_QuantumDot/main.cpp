@@ -7,7 +7,7 @@ using namespace std;
 int main()
 {
 
-    int NumberOfShells = 3;
+    int NumberOfShells = 5;
     int HOStrenth = 1;
     int NumberOfElectrons = 6;
 
