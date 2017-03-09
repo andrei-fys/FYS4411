@@ -22,7 +22,7 @@ private:
     std::vector<QuantumState> m_shells;
     int m_sm = -1;
     const double m_s = 0.5;
-    arma::mat m_C;              //Ciefficient matrix
+    arma::mat m_C;              //Coefficient matrix
     //arma::mat m_DensityMatrix;
     arma::mat m_HF;             //Hartree-Fock matrix
     arma::vec eigval_previous;

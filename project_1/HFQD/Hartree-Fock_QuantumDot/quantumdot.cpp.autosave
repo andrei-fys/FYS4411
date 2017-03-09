@@ -235,7 +235,6 @@ void QuantumDot::computeHartreeFockEnergy(){
     //cout << (arma::accu((eigval))/(double)m_shells.size()) << endl;
     int NumberOfStates = m_shells.size();
     int FermiLevel = NumberOfParticles;
-    //m_HF.zeros(NumberOfStates,NumberOfStates);
     double selfConsistentFIeldIterations = 0.0;
     double ExchangePart = 0.0;
 
@@ -286,7 +285,6 @@ void QuantumDot::computeHartreeFockEnergy(){
                             }
                             TBME = tbme1 - tbme2;
                             selfConsistentFIeldIterations = m_C(a,i)*m_C(a,j)*m_C(b,k)*m_C(b,l)*TBME;
-                            cout << selfConsistentFIeldIterations << endl;
                             ExchangePart += selfConsistentFIeldIterations;
                         }
                     }

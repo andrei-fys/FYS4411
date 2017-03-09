@@ -7,13 +7,12 @@ using namespace std;
 int main()
 {
 
-    int NumberOfShells = 5;
+    int NumberOfShells = 3;
     int HOStrenth = 1;
     int NumberOfElectrons = 6;
+
     QuantumDot qdot(NumberOfShells, HOStrenth, NumberOfElectrons);
     //qdot.getQuantumDotStates();
-
-
     qdot.applyHartreeFockMethod();
 
 }
