@@ -8,7 +8,7 @@ int main(int numberOfArguments, char **argumentList)
 
     int NumberOfShells = 3;
     int NumberOfElectrons = 6;
-    double HOStrenth = 0.1;
+    double HOStrenth = 1;
 
 
     // If a first argument is provided, it is the number of shells

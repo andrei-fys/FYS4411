@@ -7,17 +7,17 @@
 #include <armadillo>
 
 class QuantumDot{
+
 public:
     QuantumDot(int, double, int);
     int EnergyCutOff;
     int NumberOfParticles;
     double homega;
     void getQuantumDotStates();
-    //arma::mat computeDensityMatrix(arma::mat);
-
     void diagonalizeHFMatrix();
     void getQuantumDotStatesNumber();
     void applyHartreeFockMethod();
+
 private:
     std::vector<QuantumState> m_shells;
     int m_sm = -1;
@@ -36,8 +36,7 @@ private:
     arma::mat computeDensityMatrix();
     double CalculateNonIntEnergy(int n, int m);
     double computeHartreeFockEnergyDifference();
-    void computeHartreeFockEnergy();
-    void computeHartreeFockEnergyDensity(arma::mat);
+    void computeHartreeFockEnergy(arma::mat);
 
 };
 
