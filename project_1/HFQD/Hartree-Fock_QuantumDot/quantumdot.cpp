@@ -254,6 +254,7 @@ void QuantumDot::applyHartreeFockMethod(){
 
     arma::mat y_DensityMatrix = computeDensityMatrix();
     computeHartreeFockEnergy(y_DensityMatrix);
+    cout << "Number of iterations " << i << endl;
 }
 
 
@@ -279,5 +280,9 @@ void QuantumDot::writeToFile(double HF_Energy, int NumberOfParticles, int m_Ener
     ofile << "Num of shells = " << m_EnergyCutOff << endl;
     ofile << "Omega = " << homega << endl;
     ofile << "Total energy " << HF_Energy << endl;
+    ofile << "Eigenvalues: " << endl;
+    for (int i = 0; i < eigval.size(); i++){
+        ofile << eigval(i) << endl;
+    }
     ofile.close();
 }
