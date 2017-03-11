@@ -78,6 +78,7 @@ void QuantumDot::setUpStatesPolarSorted(int EnergyCutOff, double h_omega, int Pa
         sorted_states.push_back(m_shells.at(vector_to_sort.at(i).first));
     }
     m_shells = sorted_states;
+    CalculateNonIntEnergy();
 
 }
 
@@ -102,8 +103,15 @@ arma::mat QuantumDot::computeDensityMatrix(){
     return DensityMatrix;
 }
 
-double QuantumDot::CalculateNonIntEnergy(int n, int m){
-    return (2.0*(double)n + (double)abs(m) + 1.0)*homega;
+void QuantumDot::CalculateNonIntEnergy(){
+    int NumberOfStates = m_shells.size();
+    m_HOEnergies.zeros(NumberOfStates,NumberOfStates);
+    for(int i = 0; i < NumberOfStates; i++) {
+        cout << i << endl;
+        cout << NumberOfStates << endl;
+        QuantumState quantum_state = m_shells.at(i);
+        m_HOEnergies(i, i) = (2.0*(double)quantum_state.n() + (double)abs(quantum_state.m()) + 1.0)*homega;
+    }
 }
 
 void QuantumDot::computeHFmatrix(arma::mat DensityMatrix){
@@ -154,7 +162,7 @@ void QuantumDot::computeHFmatrix(arma::mat DensityMatrix){
                 }
             }
             if (i == j) {
-                m_HF(i, i) += CalculateNonIntEnergy( alpha_n, alpha_m);
+                m_HF(i, i) += m_HOEnergies(i, i);
             }
             m_HF(i, j) += FockElement;
             FockElement = 0.0;

@@ -29,6 +29,7 @@ private:
     arma::vec eigval_previous;
     arma::vec eigval;
     arma::mat eigvec;
+    arma::mat m_HOEnergies;
     char const* ResultsFile = "HF_energies";
     void setUpStatesCartesian(int);
     void setUpStatesPolar(int, double h_omega, int);
@@ -36,7 +37,7 @@ private:
     void setCoefficientMatrix(arma::mat);
     void computeHFmatrix(arma::mat);
     arma::mat computeDensityMatrix();
-    double CalculateNonIntEnergy(int n, int m);
+    void CalculateNonIntEnergy();
     double computeHartreeFockEnergyDifference();
     void computeHartreeFockEnergy(arma::mat);
     void writeToFile(double, int, int, double);
