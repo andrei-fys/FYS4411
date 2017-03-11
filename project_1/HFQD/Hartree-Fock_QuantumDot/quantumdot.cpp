@@ -107,8 +107,6 @@ void QuantumDot::CalculateNonIntEnergy(){
     int NumberOfStates = m_shells.size();
     m_HOEnergies.zeros(NumberOfStates,NumberOfStates);
     for(int i = 0; i < NumberOfStates; i++) {
-        cout << i << endl;
-        cout << NumberOfStates << endl;
         QuantumState quantum_state = m_shells.at(i);
         m_HOEnergies(i, i) = (2.0*(double)quantum_state.n() + (double)abs(quantum_state.m()) + 1.0)*homega;
     }
@@ -290,7 +288,7 @@ void QuantumDot::writeToFile(double HF_Energy, int NumberOfParticles, int m_Ener
     ofile << "Total energy " << HF_Energy << endl;
     ofile << "Eigenvalues: " << endl;
     for (int i = 0; i < eigval.size(); i++){
-        ofile << eigval(i) << endl;
+        ofile << eigval(i) << "     "<< m_HOEnergies(i, i) << endl;
     }
     ofile.close();
 }
