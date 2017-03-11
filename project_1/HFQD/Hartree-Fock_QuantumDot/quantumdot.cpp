@@ -32,6 +32,7 @@ void QuantumDot::setUpStatesCartesian(int EnergyCutOff) {
 void QuantumDot::setUpStatesPolarSorted(int EnergyCutOff, double h_omega, int ParticlesNumber) {
     homega = h_omega;
     NumberOfParticles = ParticlesNumber;
+    m_EnergyCutOff = EnergyCutOff;
     QuantumState m_q_state;
     vector<int> oddShells;
     int n, m;
@@ -115,16 +116,19 @@ void QuantumDot::computeHFmatrix(arma::mat DensityMatrix){
         int alpha_n = quantum_state_alpha.n();
         int alpha_m = quantum_state_alpha.m();
         int alpha_sm = quantum_state_alpha.sm();
+
         for(int j = 0; j < NumberOfStates; j++) {
             QuantumState quantum_state_beta = m_shells.at(j);
             int beta_n = quantum_state_beta.n();
             int beta_m = quantum_state_beta.m();
             int beta_sm = quantum_state_beta.sm();
+
             for(int k = 0; k < NumberOfStates; k++) {
                 QuantumState quantum_state_gama = m_shells.at(k);
                 int gama_n = quantum_state_gama.n();
                 int gama_m = quantum_state_gama.m();
                 int gama_sm = quantum_state_gama.sm();
+
                 for(int l = 0; l < NumberOfStates; l++) {
                     QuantumState quantum_state_delta = m_shells.at(l);
                     int delta_n = quantum_state_delta.n();
@@ -133,6 +137,7 @@ void QuantumDot::computeHFmatrix(arma::mat DensityMatrix){
                     double TBME = 0.0;
                     double tbme1 = 0.0;
                     double tbme2 = 0.0;
+
                     if ((alpha_sm == beta_sm && gama_sm == delta_sm)){ /*&&
                             (alpha_sm + gama_sm == beta_sm + delta_sm) &&
                                 (alpha_m + gama_m == beta_m + delta_m)){*/
@@ -213,10 +218,16 @@ void QuantumDot::computeHartreeFockEnergy(arma::mat DensityMatrix){
             }
         }
     }
-
-    cout << "SPEnergies " << SingleParticleEnergies << endl;
-    cout << "Exchange " << ExchangePart << endl;
-    cout << "Total " << SingleParticleEnergies - 0.5*ExchangePart << endl;
+    double HF_Energy = SingleParticleEnergies - 0.5*ExchangePart;
+    // Uncoment for debug
+    //cout << "SPEnergies " << SingleParticleEnergies << endl;
+    //cout << "Exchange " << ExchangePart << endl;
+    cout << "===================================================================" << endl;
+    cout << "Num of electrons = " << NumberOfParticles << endl;
+    cout << "Num of shells = " << m_EnergyCutOff << endl;
+    cout << "Omega = " << homega << endl;
+    cout << "Total energy " << HF_Energy << endl;
+    writeToFile(HF_Energy, NumberOfParticles, m_EnergyCutOff, homega);
 }
 
 void QuantumDot::applyHartreeFockMethod(){
@@ -260,3 +271,13 @@ void QuantumDot::getQuantumDotStatesNumber(){
     cout << "Number of available states of system is " << m_shells.size() << endl;
 }
 
+void QuantumDot::writeToFile(double HF_Energy, int NumberOfParticles, int m_EnergyCutOff, double homega){
+    ofstream ofile;
+    ofile.open(ResultsFile, ios::app);
+    ofile << "===============================" << endl;
+    ofile << "Num of electrons = " << NumberOfParticles << endl;
+    ofile << "Num of shells = " << m_EnergyCutOff << endl;
+    ofile << "Omega = " << homega << endl;
+    ofile << "Total energy " << HF_Energy << endl;
+    ofile.close();
+}

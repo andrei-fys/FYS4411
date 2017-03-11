@@ -23,11 +23,13 @@ private:
     int m_sm = -1;
     const double m_s = 0.5;
     arma::mat m_C;              //Coefficient matrix
+    int m_EnergyCutOff;
     //arma::mat m_DensityMatrix;
     arma::mat m_HF;             //Hartree-Fock matrix
     arma::vec eigval_previous;
     arma::vec eigval;
     arma::mat eigvec;
+    char const* ResultsFile = "HF_energies";
     void setUpStatesCartesian(int);
     void setUpStatesPolar(int, double h_omega, int);
     void setUpStatesPolarSorted(int, double h_omega, int);
@@ -37,6 +39,7 @@ private:
     double CalculateNonIntEnergy(int n, int m);
     double computeHartreeFockEnergyDifference();
     void computeHartreeFockEnergy(arma::mat);
+    void writeToFile(double, int, int, double);
 
 };
 
