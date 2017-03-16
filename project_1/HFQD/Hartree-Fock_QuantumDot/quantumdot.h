@@ -41,7 +41,12 @@ private:
     double computeHartreeFockEnergyDifference();
     void computeHartreeFockEnergy(arma::mat);
     void writeToFile(double, int, int, double);
+    void fillTwoBodyElements();
+    double**** m_twoBodyElements;
+    double**** create4dArray(int, int, int, int);
 
 };
 
 #endif // QUANTUMDOT_H
+
+

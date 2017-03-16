@@ -78,10 +78,99 @@ void QuantumDot::setUpStatesPolarSorted(int EnergyCutOff, double h_omega, int Pa
         sorted_states.push_back(m_shells.at(vector_to_sort.at(i).first));
     }
     m_shells = sorted_states;
+    int dim = m_shells.size();
     CalculateNonIntEnergy();
+    m_twoBodyElements = create4dArray(dim, dim, dim, dim);
+    fillTwoBodyElements();
 
 }
 
+
+
+double**** QuantumDot::create4dArray(int dim1, int dim2, int dim3, int dim4) {
+
+    double**** h = new double***[dim1];
+
+    for(int i=0; i < dim1; i++) {
+        h[i] = new double**[dim2];
+        for (int j=0; j < dim2; j++) {
+            h[i][j] = new double*[dim3];
+            for(int k = 0; k < dim3; k++) {
+                h[i][j][k] = new double[dim4];
+            }
+        }
+    }
+
+    for(int i=0; i < dim1; i++) {
+
+        for (int j=0; j < dim2; j++) {
+
+            for(int k = 0; k < dim3; k++) {
+                for(int l = 0; l < dim4; l++) {
+                    h[i][j][k][l] = 0;
+                }
+
+            }
+        }
+    }
+
+    return h;
+
+}
+
+
+void QuantumDot::fillTwoBodyElements(){
+    int NumberOfStates = m_shells.size();
+    //m_HF.zeros(NumberOfStates,NumberOfStates);
+    //double FockElement = 0;
+
+    for(int i = 0; i < NumberOfStates; i++) {
+        QuantumState quantum_state_alpha = m_shells.at(i);
+        int alpha_n = quantum_state_alpha.n();
+        int alpha_m = quantum_state_alpha.m();
+        int alpha_sm = quantum_state_alpha.sm();
+
+        for(int j = 0; j < NumberOfStates; j++) {
+            QuantumState quantum_state_beta = m_shells.at(j);
+            int beta_n = quantum_state_beta.n();
+            int beta_m = quantum_state_beta.m();
+            int beta_sm = quantum_state_beta.sm();
+
+            for(int k = 0; k < NumberOfStates; k++) {
+                QuantumState quantum_state_gama = m_shells.at(k);
+                int gama_n = quantum_state_gama.n();
+                int gama_m = quantum_state_gama.m();
+                int gama_sm = quantum_state_gama.sm();
+
+                for(int l = 0; l < NumberOfStates; l++) {
+                    QuantumState quantum_state_delta = m_shells.at(l);
+                    int delta_n = quantum_state_delta.n();
+                    int delta_m = quantum_state_delta.m();
+                    int delta_sm = quantum_state_delta.sm();
+                    //double TBME = 0.0;
+                    //double tbme1 = 0.0;
+                    //double tbme2 = 0.0;
+
+                    if ((alpha_sm == beta_sm && gama_sm == delta_sm)){ /*&&
+                            (alpha_sm + gama_sm == beta_sm + delta_sm) &&
+                                (alpha_m + gama_m == beta_m + delta_m)){*/
+                        //tbme1 = m_twoBodyElements[i][j][k][l];
+                        m_twoBodyElements[i][k][j][l] = Coulomb_HO(homega, alpha_n, alpha_m, gama_n, gama_m, beta_n, beta_m,  delta_n, delta_m);
+                    }
+                    if ((alpha_sm == delta_sm && gama_sm == beta_sm)){ /*&&
+                            (alpha_sm + gama_sm == beta_sm + delta_sm) &&
+                                (alpha_m + gama_m == delta_m + beta_m)){*/
+                        //tbme2   =  Coulomb_HO(homega, alpha_n, alpha_m, gama_n, gama_m, delta_n, delta_m, beta_n, beta_m);
+                        //tbme2 = m_twoBodyElements[i][j][l][k];
+                        m_twoBodyElements[i][k][l][j] = Coulomb_HO(homega, alpha_n, alpha_m, gama_n, gama_m, delta_n, delta_m, beta_n, beta_m);
+                    }
+                    //TBME = tbme1 - tbme2;
+                    //FockElement += DensityMatrix(k,l)*TBME;
+                }
+            }
+        }
+    }
+}
 
 void QuantumDot::setCoefficientMatrix(arma::mat CoefficientMatrix){
      m_C = CoefficientMatrix;
@@ -147,13 +236,14 @@ void QuantumDot::computeHFmatrix(arma::mat DensityMatrix){
                     if ((alpha_sm == beta_sm && gama_sm == delta_sm)){ /*&&
                             (alpha_sm + gama_sm == beta_sm + delta_sm) &&
                                 (alpha_m + gama_m == beta_m + delta_m)){*/
-
-                        tbme1 = Coulomb_HO(homega, alpha_n, alpha_m, gama_n, gama_m, beta_n, beta_m,  delta_n, delta_m);
+                        tbme1 = m_twoBodyElements[i][k][j][l];
+                        //tbme1 = Coulomb_HO(homega, alpha_n, alpha_m, gama_n, gama_m, beta_n, beta_m,  delta_n, delta_m);
                     }
                     if ((alpha_sm == delta_sm && gama_sm == beta_sm)){ /*&&
                             (alpha_sm + gama_sm == beta_sm + delta_sm) &&
                                 (alpha_m + gama_m == delta_m + beta_m)){*/
-                        tbme2   =  Coulomb_HO(homega, alpha_n, alpha_m, gama_n, gama_m, delta_n, delta_m, beta_n, beta_m);
+                        //tbme2   =  Coulomb_HO(homega, alpha_n, alpha_m, gama_n, gama_m, delta_n, delta_m, beta_n, beta_m);
+                        tbme2 = m_twoBodyElements[i][k][l][j];
                     }
                     TBME = tbme1 - tbme2;
                     FockElement += DensityMatrix(k,l)*TBME;
@@ -212,10 +302,12 @@ void QuantumDot::computeHartreeFockEnergy(arma::mat DensityMatrix){
                     double tbme1 = 0.0;
                     double tbme2 = 0.0;
                     if ((alpha_sm == beta_sm) && (gama_sm == delta_sm)){
-                       tbme1 = Coulomb_HO(homega, alpha_n, alpha_m, gama_n, gama_m, beta_n, beta_m,  delta_n, delta_m);
+                       //tbme1 = Coulomb_HO(homega, alpha_n, alpha_m, gama_n, gama_m, beta_n, beta_m,  delta_n, delta_m);
+                       tbme1 = m_twoBodyElements[i][k][j][l];
                     }
                     if ((alpha_sm == delta_sm) && (gama_sm == beta_sm)){
-                       tbme2   =  Coulomb_HO(homega, alpha_n, alpha_m, gama_n, gama_m, delta_n, delta_m, beta_n, beta_m);
+                       //tbme2   =  Coulomb_HO(homega, alpha_n, alpha_m, gama_n, gama_m, delta_n, delta_m, beta_n, beta_m);
+                       tbme2 = m_twoBodyElements[i][k][l][j];
                     }
                     TBME = tbme1 - tbme2;
                     selfConsistentFIeldIterations = DensityMatrix(i,j)*DensityMatrix(k,l)*TBME;
@@ -243,7 +335,7 @@ void QuantumDot::applyHartreeFockMethod(){
     C.eye();
     setCoefficientMatrix(C);
     double difference = 10; //dummy value to handle first iteration
-    double epsilon = 10e-10;
+    double epsilon = 10e-8;
 
     eigval_previous.zeros(NumberOfStates);
     int i = 0;

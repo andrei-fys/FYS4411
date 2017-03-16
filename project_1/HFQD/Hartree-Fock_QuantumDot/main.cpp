@@ -6,7 +6,7 @@ using namespace std;
 int main(int numberOfArguments, char **argumentList)
 {
 
-    int NumberOfShells = 3;
+    int NumberOfShells = 13;
     int NumberOfElectrons = 6;
     double HOStrenth = 1;
 
@@ -20,7 +20,8 @@ int main(int numberOfArguments, char **argumentList)
 
     QuantumDot qdot(NumberOfShells, HOStrenth, NumberOfElectrons);
     //qdot.getQuantumDotStates();
-    qdot.applyHartreeFockMethod();
+    //qdot.applyHartreeFockMethod();
+    qdot.getQuantumDotStatesNumber();
 
 }
 
