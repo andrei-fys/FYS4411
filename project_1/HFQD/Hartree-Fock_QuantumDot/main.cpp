@@ -6,7 +6,7 @@ using namespace std;
 int main(int numberOfArguments, char **argumentList)
 {
 
-    int NumberOfShells = 13;
+    int NumberOfShells = 4;
     int NumberOfElectrons = 6;
     double HOStrenth = 1;
 
@@ -20,35 +20,7 @@ int main(int numberOfArguments, char **argumentList)
 
     QuantumDot qdot(NumberOfShells, HOStrenth, NumberOfElectrons);
     //qdot.getQuantumDotStates();
-    //qdot.applyHartreeFockMethod();
-    qdot.getQuantumDotStatesNumber();
+    qdot.applyHartreeFockMethod();
+    //qdot.getQuantumDotStatesNumber();
 
 }
-
-
-
-/*class QuatumState;
-
-class MatrixElements {
-    double computeOnebodyElement(i,j);
-    double computeTwobodyElementAntiSymmetric(i,j,k,l);
-};
-
-class HartreeFock {
-private:
-    mat FockMatrix;
-    mat Coefficients; // C
-    mat DensityMatrix; // rho
-    mat HartreeFockEnergies;
-    mat epsilon;
-
-public:
-    mat computeFockMatrix();
-    mat computeDensityMatrix();
-    void diagonalizeFockMatrix();
-    double computeHartreeoFockEnergy();
-
-    void selfConsisintentFIeldIterations();
-};
-*/
-

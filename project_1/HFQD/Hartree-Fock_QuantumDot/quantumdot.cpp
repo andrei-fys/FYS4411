@@ -85,8 +85,6 @@ void QuantumDot::setUpStatesPolarSorted(int EnergyCutOff, double h_omega, int Pa
 
 }
 
-
-
 double**** QuantumDot::create4dArray(int dim1, int dim2, int dim3, int dim4) {
 
     double**** h = new double***[dim1];
@@ -100,11 +98,8 @@ double**** QuantumDot::create4dArray(int dim1, int dim2, int dim3, int dim4) {
             }
         }
     }
-
     for(int i=0; i < dim1; i++) {
-
         for (int j=0; j < dim2; j++) {
-
             for(int k = 0; k < dim3; k++) {
                 for(int l = 0; l < dim4; l++) {
                     h[i][j][k][l] = 0;
@@ -113,16 +108,11 @@ double**** QuantumDot::create4dArray(int dim1, int dim2, int dim3, int dim4) {
             }
         }
     }
-
     return h;
-
 }
-
 
 void QuantumDot::fillTwoBodyElements(){
     int NumberOfStates = m_shells.size();
-    //m_HF.zeros(NumberOfStates,NumberOfStates);
-    //double FockElement = 0;
 
     for(int i = 0; i < NumberOfStates; i++) {
         QuantumState quantum_state_alpha = m_shells.at(i);
@@ -147,25 +137,13 @@ void QuantumDot::fillTwoBodyElements(){
                     int delta_n = quantum_state_delta.n();
                     int delta_m = quantum_state_delta.m();
                     int delta_sm = quantum_state_delta.sm();
-                    //double TBME = 0.0;
-                    //double tbme1 = 0.0;
-                    //double tbme2 = 0.0;
 
-                    if ((alpha_sm == beta_sm && gama_sm == delta_sm)){ /*&&
-                            (alpha_sm + gama_sm == beta_sm + delta_sm) &&
-                                (alpha_m + gama_m == beta_m + delta_m)){*/
-                        //tbme1 = m_twoBodyElements[i][j][k][l];
+                    if ((alpha_sm == beta_sm && gama_sm == delta_sm)){
                         m_twoBodyElements[i][k][j][l] = Coulomb_HO(homega, alpha_n, alpha_m, gama_n, gama_m, beta_n, beta_m,  delta_n, delta_m);
                     }
-                    if ((alpha_sm == delta_sm && gama_sm == beta_sm)){ /*&&
-                            (alpha_sm + gama_sm == beta_sm + delta_sm) &&
-                                (alpha_m + gama_m == delta_m + beta_m)){*/
-                        //tbme2   =  Coulomb_HO(homega, alpha_n, alpha_m, gama_n, gama_m, delta_n, delta_m, beta_n, beta_m);
-                        //tbme2 = m_twoBodyElements[i][j][l][k];
+                    if ((alpha_sm == delta_sm && gama_sm == beta_sm)){
                         m_twoBodyElements[i][k][l][j] = Coulomb_HO(homega, alpha_n, alpha_m, gama_n, gama_m, delta_n, delta_m, beta_n, beta_m);
                     }
-                    //TBME = tbme1 - tbme2;
-                    //FockElement += DensityMatrix(k,l)*TBME;
                 }
             }
         }
@@ -233,16 +211,10 @@ void QuantumDot::computeHFmatrix(arma::mat DensityMatrix){
                     double tbme1 = 0.0;
                     double tbme2 = 0.0;
 
-                    if ((alpha_sm == beta_sm && gama_sm == delta_sm)){ /*&&
-                            (alpha_sm + gama_sm == beta_sm + delta_sm) &&
-                                (alpha_m + gama_m == beta_m + delta_m)){*/
+                    if ((alpha_sm == beta_sm && gama_sm == delta_sm)){
                         tbme1 = m_twoBodyElements[i][k][j][l];
-                        //tbme1 = Coulomb_HO(homega, alpha_n, alpha_m, gama_n, gama_m, beta_n, beta_m,  delta_n, delta_m);
                     }
-                    if ((alpha_sm == delta_sm && gama_sm == beta_sm)){ /*&&
-                            (alpha_sm + gama_sm == beta_sm + delta_sm) &&
-                                (alpha_m + gama_m == delta_m + beta_m)){*/
-                        //tbme2   =  Coulomb_HO(homega, alpha_n, alpha_m, gama_n, gama_m, delta_n, delta_m, beta_n, beta_m);
+                    if ((alpha_sm == delta_sm && gama_sm == beta_sm)){
                         tbme2 = m_twoBodyElements[i][k][l][j];
                     }
                     TBME = tbme1 - tbme2;
@@ -302,11 +274,9 @@ void QuantumDot::computeHartreeFockEnergy(arma::mat DensityMatrix){
                     double tbme1 = 0.0;
                     double tbme2 = 0.0;
                     if ((alpha_sm == beta_sm) && (gama_sm == delta_sm)){
-                       //tbme1 = Coulomb_HO(homega, alpha_n, alpha_m, gama_n, gama_m, beta_n, beta_m,  delta_n, delta_m);
                        tbme1 = m_twoBodyElements[i][k][j][l];
                     }
                     if ((alpha_sm == delta_sm) && (gama_sm == beta_sm)){
-                       //tbme2   =  Coulomb_HO(homega, alpha_n, alpha_m, gama_n, gama_m, delta_n, delta_m, beta_n, beta_m);
                        tbme2 = m_twoBodyElements[i][k][l][j];
                     }
                     TBME = tbme1 - tbme2;
@@ -321,6 +291,7 @@ void QuantumDot::computeHartreeFockEnergy(arma::mat DensityMatrix){
     //cout << "SPEnergies " << SingleParticleEnergies << endl;
     //cout << "Exchange " << ExchangePart << endl;
     cout << "===================================================================" << endl;
+    cout << setprecision(12);
     cout << "Num of electrons = " << NumberOfParticles << endl;
     cout << "Num of shells = " << m_EnergyCutOff << endl;
     cout << "Omega = " << homega << endl;
@@ -351,6 +322,7 @@ void QuantumDot::applyHartreeFockMethod(){
     }
 
     arma::mat y_DensityMatrix = computeDensityMatrix();
+    m_numOfIterations = i;
     computeHartreeFockEnergy(y_DensityMatrix);
     cout << "Number of iterations " << i << endl;
 }
@@ -373,11 +345,13 @@ void QuantumDot::getQuantumDotStatesNumber(){
 void QuantumDot::writeToFile(double HF_Energy, int NumberOfParticles, int m_EnergyCutOff, double homega){
     ofstream ofile;
     ofile.open(ResultsFile, ios::app);
+    ofile << setprecision(12);
     ofile << "===============================" << endl;
     ofile << "Num of electrons = " << NumberOfParticles << endl;
     ofile << "Num of shells = " << m_EnergyCutOff << endl;
     ofile << "Omega = " << homega << endl;
     ofile << "Total energy " << HF_Energy << endl;
+    ofile << "Iterations " << m_numOfIterations << endl;
     ofile << "Eigenvalues: " << endl;
     for (int i = 0; i < eigval.size(); i++){
         ofile << eigval(i) << "     "<< m_HOEnergies(i, i) << endl;

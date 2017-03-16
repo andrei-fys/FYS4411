@@ -44,6 +44,7 @@ private:
     void fillTwoBodyElements();
     double**** m_twoBodyElements;
     double**** create4dArray(int, int, int, int);
+    int m_numOfIterations;
 
 };
 
