@@ -450,6 +450,17 @@ Every iteration Hartree-fock matrix is diagonalized in order to calculate new $C
 
 where summation goes over all calculated single-particle energies and $Z$ is the number of single-particle states or in our implementation simply size of state vector.
 
+After condition \label{eq:diag-cond} is met eigenvalues can be used to compute ground-state energy: 
+\begin{equation} \label{final_energy}
+E = \sum^N_i \epsilon_i - \frac{1}{2}\sum_{\alpha\beta\gamma\delta}^Z \rho_{\alpha,\beta} \rho_{\gamma,\delta}\langle \phi_{\alpha}\phi_{\gamma}|\hatU_{0}|\phi_{\beta}\phi_{\delta}\rangle_{AS},
+\end{equation}
+
+
+
+
+
+
+
 Simple code for Hartree-Fock algorithm is shown in listing (2)
 \begin{pseudolisting}{Hartree-Fock code}
 void QuantumDot::applyHartreeFockMethod(){
@@ -566,15 +577,16 @@ Results for $N=6$ differ for DMC and Hartree-Fock by $2.8\%$, for $N=12$ -- by $
 
 
 \section{Conclusion and further research}\label{conc}
+In this project we developed the program to calculate the ground state energy of the quantum dot with magic number fillings. We studied the systems with different numbers of shells and electrons. Obtained results are in a good agreement both with analytical calculations from Taut \cite{Taut} and numerical results from \cite{Hjorth-Jensen} before Hartree-Fock limit.
+Method converges relatively quickly for small number of electrons and larger values of $\omega$. However we cannot say that we reached convergence for $\omega=0.1$ and $N=20$ number of electrons. According \cite{Hjorth-Jensen} correlations became more important in this case and one need to employ post-Hartree-Fock methods or Hartree-Fock like methods(f.ex. density functional theory) to take into account correlation energy.
+Code itself can be optimized in order to calculate ground state energy with energy cut-off larger then $Z=12$.
 
-
-\newpage
 \begin{thebibliography}{2}
 
 \bibitem{manufacturing}
 I. Maximov, A. Gustafsson, H.C. Hansson, L. Samuelson, W. Seifert, A. Wiedensohler
 \textit{Fabrication of quantum dot structures using aerosol deposition and plasma etching techniques}.
-Journal of Vacuum Science and Technology A: Vacuum, Surfaces, and Films 11, 748 (1993)
+Journal of Vacuum Science and Technology A: Vacuum, Surfaces, and Films, 748 11.1993
 
 \bibitem{one} 
 Morten Hjorth-Jensen. 
