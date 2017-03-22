@@ -1,0 +1,614 @@
+\documentclass[10pt]{article}
+\usepackage{mathtools}
+\usepackage{amsmath}
+\usepackage{tabularx}
+\usepackage{graphicx}
+\usepackage{flexisym}
+\usepackage{listings}
+\usepackage[most]{tcolorbox}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{amsthm}
+\usepackage{subcaption}
+\usepackage[a4paper,top=3cm,bottom=2cm,left=3cm,right=3cm,marginparwidth=1.75cm]{geometry}
+
+\newcommand*{\hatH}{\hat{\mathcal{H}}}
+\newcommand*{\hatT}{\hat{\mathcal{T}}}
+\newcommand*{\hatU}{\hat{\mathcal{U}}}
+\newcommand*{\hatV}{\hat{\mathcal{V}}}
+\newcommand*{\hatA}{\hat{\mathcal{A}}}
+
+
+\usepackage{multirow}
+
+\usepackage{hyperref}
+\usepackage[a4paper,top=3cm,bottom=2cm,left=3cm,right=3cm,marginparwidth=1.75cm]{geometry}   
+\newtcblisting[auto counter]{pseudolisting}[2][]{sharp corners,
+    fonttitle=\bfseries, colframe=gray, listing only,
+    listing options={basicstyle=\ttfamily,language=c++},
+    title=Listing \thetcbcounter: #2, #1}
+
+
+
+\definecolor{coding}{rgb}{0.8,0.8,0.8}
+\newcommand{\code}[1]{\colorbox{coding}{\texttt{#1}}}
+
+
+
+% **  Template for evaluating and grading projects **
+% The total score is 100 points and each project
+% counts 50% of the final mark. Remember to add  your github username to the project 
+% files. 
+% The following items/sections should be included in your report.  
+% Please try to remember all these sections and elements. 
+%
+% // Abstract: 
+% It should be accurate and informative. 
+% Remember to state your main findings here. If there are specific
+% results you have obtained, they should be stated here.
+% Total number of possible points: 5
+%
+% // Introduction: 
+% Here you motivate the reader, give a status of the problem(s) and 
+% the major objectives. State what you have done and give an outline
+% of the report.
+% Total number of possible points: 10
+%
+%
+% // Formalism/methods: 
+% Here you discuss the methods used and their basis/suitability.  Give a presentation of the algorithm(s), possible
+% errors etc etc. 
+% Total number of possible points: 20
+%
+%
+% // Code/Implementations/test: 
+% Here you should discuss how you implemented the algorithms, how you tested the algorithms,
+% which other tests you have implemented, eventual  timings
+% and possible benchmark calculations.  Clarity of codes are also included in the evaluation.
+% Total number of possible points 20
+%
+%
+% // Analysis of results:
+% Here you should discuss your main findings, link them up with existing literature, discuss 
+% eventual errors, the effectiveness of your algorithm, stability of the calculations etc. 
+% Total number of possible points: 20
+%
+%
+%
+% //Conclusions and perspectives: 
+% Here you give a summary of your discussions and critical comments, what was learned about the method(s) 
+% you used and on the results obtained. If possible, try to present some perspectives for future work,
+% Possible directions and future improvements.  
+% Total number of possible points: 10
+%
+%
+% //Clarity of figures, tables and overall presentation. 
+% Remember proper table and figure captions. Label all lines properly and remember labels on your axes.
+% If specific units are used, these should be stated.
+% Total number of possible points: 10
+%
+% //References: 
+% You should cite relevant works accurately. As an example, for journal articles use
+% Author(s), Journal name, volume, pages and year (you can include title as well and possible weblink).
+% For books, use Author(s), title of book, publisher, year and eventually which pages. 
+%
+% Total number of possible points: 5
+%
+%
+% In total 100 points.
+%
+% When setting up the final mark, the following tentative table will be used:
+% Points     Mark
+% 92 - 100   A  
+% 77 - 91    B   
+% 58 - 76    C   
+% 46 - 57    D   
+% 40- 45     E    
+% 0- 39      F
+%
+% For PhD students the mark is passed/not passed.
+%
+
+\newtheorem*{theorem}{Theorem}
+\begin{document}
+\setlength\parindent{1pt}
+\title{Studies of electrons confined in 2D quantum dot by Hartree-Fock method}
+\author{Andrei Kukharenka \\  
+FYS 4411 
+}
+
+\maketitle
+\begin{abstract}
+
+
+
+\end{abstract}
+\clearpage 
+
+
+
+
+
+
+\section{Introduction}
+
+
+In this project we employ Hartree-Fock method to calculate ground state energy for a system of electrons confined in isotropic harmonic oscillator potential. This systems are known as quantum dots which are systems of great interest for physicists due to the possibility of their application in various fields, such as construction of quantum circuits to applications to solar cells and nano-medicine.(ssilok by suda) It is possible to create quantum dots systems by various methods experimentally for example deposition or etching\cite{manufacturing} techniques where main idea is to trap electrons  with bowl-like or spherical potential. 
+
+Despite the fact that the Hartree-Fock is the simplest possible many-body method it gives good enough ratio between precision and computational costs for qualitative understanding of quantum dots properties. Besides that Hartree-Fock results can be used as a input for other more precise many-body methods.
+
+
+The report has the following structure:\\*
+In the part \ref{Part1}  we discuss in general many-body problem and assumptions allowing us to solve it. Then we introduce quantum dot system and derive Hartree-Fock equations for system of interest. At the end of the chapter, a brief discussion of the Hartree-Fock method implementation in C++ is given.
+Those who are already familiar with Hartree-Fock method can safely skip this part and go directly to the results and discussion part \ref{results}. Conclusion \ref{conc} is devoted to a brief overview of obtained results and possibilities for future research. 
+
+ 
+
+\newpage
+
+\section{The Hartree-Fock method }\label{Part1}   %// Formalism/methods: 
+
+We start this section with discussion of the simplest many-body method that can be applied to a system of atoms. Further we will focus our attention on deriving Hartree-Fock equations and application of method to quantum dots.
+
+Main idea of Hartree-Fock method is to describe interaction between particles as effective potential where particles move independently. This leads to system of single particle Schr\"{o}dinger equations for individual one-electron wave functions with a potential determined by other electrons wave functions possibly in addition to the external potential. Such a coupling between orbitals leads to iterative scheme which we will discuss in the next chapter. \\
+  The Hartree-Fock method is a popular method in chemistry and material science. 
+
+
+
+\subsubsection{Many-particle problem. Born-Oppenheimer approximation.}
+
+Real systems unlike idealized cases f.ex. harmonic oscillator can't be solved analytically in quantum mechanics.
+To deal with this we have to use approximations and simplifications solving tasks numerically.
+Let us consider a general realistic system like material that contain atoms to present main concepts and then will move our focus toward quantum dots.
+So we have a material containing electrons and nuclei without any external potential.
+Our main quantity of interest is energy of the system. If we treat system quantum mechanically energy of the system is represented by Hamiltonian and we need to solve eigenvalue problem:
+\[
+\hatH\Psi = E\Psi
+\]
+
+where $\hatH$ is Hamiltonian of the system, $\Psi$ is wave-function of the system.
+Let us write out Hamiltonian assuming we have $N_e$ electrons and $N_n$ nuclei. Wave-function of the system is now function of all electrons and nuclei coordinates, namely $\Psi=\Psi(\{\vec{r}, \vec{R}\}) = \Psi(\vec{r}_1, \vec{r}_2, ...., \vec{r}_{N_e}, \vec{R}_1, \vec{R}_2, ...., \vec{R}_{N_n})$
+So time-independent Schr\"{o}dinger equation can be written as:
+\[
+\hatH_n\Psi_n(\{\vec{r}, \vec{R}\}) = E_n\Psi_n(\{\vec{r}, \vec{R}\})
+\]
+with Hamiltonian:
+
+\[
+\hatH_n = -\sum_{j=1}^{N_e} \frac{\hbar^2\nabla_j^2}{2m_e} -\sum_{\alpha=1}^{N_n} \frac{\hbar^2\nabla_{\alpha}^2}{2m_\alpha} +
+          \sum_{j<j^{\prime}}^{N_e} \frac{e^2}{|\vec{r_j} - \vec{r_{j^{\prime}}}|} + \sum_{\alpha\neq \alpha^{\prime}}^{N_n} \frac{Z_{\alpha}Z_{\alpha^{\prime}}e^2}{|\vec{R_{\alpha}} - \vec{R_{\alpha^{\prime}}}|} - \sum_{j=1}^{N_e} \sum_{\alpha=1}^{N_n} \frac{Z_{\alpha}e^2}{|\vec{R_{\alpha}} - \vec{r_j}|}
+\]
+
+where first term represents kinetic energy of the electrons, second term - kinetic energy of all nuclei, third - repulsive electron-electron interactions. Two last terms corresponds to repulsive nuclei-nuclei interactions and attractive electron-nuclei interactions respectively. One can mention that this not simple form of Hamiltonian already has some approximations like neglecting relativistic effects external fields and nuclei are treated as charged spheres.
+To simplify task one can apply so called Born-Oppenheimer approximation where main idea is that nuclei are much heavier than electrons and if the nuclei are suddenly moved electrons respond instantaneously on the nuclei motion. We can rewrite wave-function for the system in form:
+\[
+\Psi_n(\{\vec{r}, \vec{R}\}) = \psi_n(\{\vec{r}, \vec{R}\})\Theta_n(\{\vec{R}\}),
+\]
+where $\psi_n(\{\vec{r}, \vec{R}\}$ is many-electron wave-function depending on nuclei positions, $\Theta_n(\{\vec{R}\})$ is nuclei wave-function.
+Using separation of variables one can arrive into two differential equations which are coupled via total electronic energy $E_n(\vec{R})$
+
+\begin{equation}\label{eq:MESE}
+\Big\{-\sum_{j=1}^{N_e} \frac{\hbar^2\nabla_j^2}{2m_e} -\sum_{\alpha=1}^{N_n} \frac{\hbar^2\nabla_{\alpha}^2}{2m_\alpha} +\sum_{j<j^{\prime}}^{N_e} \frac{e^2}{|\vec{r_j} - \vec{r_{j^{\prime}}}|} \Big\} \psi_n(\{\vec{r}, \vec{R}\}) = E_n(\vec{R}) \psi_n(\{\vec{r}, \vec{R}\}) 
+\end{equation}
+
+\begin{equation}
+\Big\{-\sum_{I=1}^{N} \frac{\hbar^2\nabla_I^2}{2m_\alpha} + \sum_{I\neq J}^{N} \frac{Z_IZ_Je^2}{|R_I-R_J|} + E_n(R)\Big\}\Theta_n(\{\vec{R}\})=E_n^{en}\Theta_n(\{\vec{R}\})
+\end{equation}
+
+Often kinetic energy of nuclei can be neglected and energy of such system consists of nuclei electrostatic energy and energy of the electrons.
+However problem (\ref{eq:MESE}) is still a difficult problem even for numerical approach due to a big number of degrees of freedom involved.
+In the next subsection we introduce a way allowing us simplify Hamiltonian considering our system of interest -- quantum well. 
+
+
+
+
+
+\subsubsection{Quantum dot. Hartree-Fock approximation.} 
+If we consider a quantum dot as isolated system of electrons confined in a pure two-dimentional isotropic harmonic oscillator potential we deal with equation similar to many-electrons Schr\"{o}dinger equation obtained after applying Born-Oppenheimer approximation (\ref{eq:MESE}).
+In more simple form it can be written as:
+
+\begin{equation}\label{eq:SE}
+(\hatT + \hatU_{ee} + \hatV_{ext}) \Psi_{\lambda} = E \Psi_{\lambda}
+\end{equation}
+Where $\hatT$ is electron kinetic energy, $\hatU_{ee}$ -- coulomb interaction between electrons, $\hatV_{ext}$ -- external potential. We can rewrite Hamiltonian as following in Cartesian coordinates:
+
+\[
+\hatH = \sum_{i=1}^{N} \left(  -\frac{1}{2} \nabla_i^2 + \frac{1}{2} \omega^2r_i^2  \right)+\sum_{i<j}^{N}\frac{1}{r_{ij}} = \hatH_0 + \hatH_I
+\]
+Where firs term is a sum of $\hatT$ and $\hatV_{ext}$, last term represents coulomb interaction between electrons $\hatU_{ee}$. Units are transfered to natural units ($\hbar=c=e=m_e=1$) and all energies are in atomic units (a.u.). The first term($\hatH_0$) is nothing but the sum of the one-body Hamiltonians containing kinetic energy of electron and potential energy of electron in harmonic oscillator potential. Considering two-body interaction only the second part of the total Hamiltonian ($\hatH_I$) is represents interactions between each pair of electrons.
+
+equation (\ref{eq:SE}) can be rewritten as: 
+\begin{equation}\label{eq:SE1}
+\hatH_0 \Psi_{\lambda} + \hatH_I \Psi_{\lambda} = E \Psi_{\lambda}
+\end{equation}
+
+Problem of equation (\ref{eq:SE1}) is a fact that we do not know wave function of the system. To make a smart guess we use a wave function in a form of Slater determinant made up from single electron wave functions. 
+
+\begin{equation}
+\Phi(x_1, x_2,\dots ,x_N,\alpha,\beta,\dots, \sigma)=\frac{1}{\sqrt{N!}}
+\left| \begin{array}{ccccc} \psi_{\alpha}(x_1)& \psi_{\alpha}(x_2)& \dots & \dots & \psi_{\alpha}(x_N)\\
+                            \psi_{\beta}(x_1)&\psi_{\beta}(x_2)& \dots & \dots & \psi_{\beta}(x_N)\\  
+                            \dots & \dots & \dots & \dots & \dots \\
+                            \dots & \dots & \dots & \dots & \dots \\
+                     \psi_{\sigma}(x_1)&\psi_{\sigma}(x_2)& \dots & \dots & \psi_{\sigma}(x_N)\end{array} \right| \label{eq:HartreeFockDet}
+\end{equation}
+
+Here and further we define next formalism:  $\Psi$ is a exact wave function of whole system, $\Phi$ - approximation of exact wave function for the system, $\psi$ - exact one-particle wave function. Slater determinant can be rewritten in more useful form for our task by introducing anti-symmetrization operator $\hatA$:
+
+\[
+ \Phi(x_1,x_2,\dots,x_N,\alpha,\beta,\dots,\nu) = \frac{1}{\sqrt{N!}}\sum_{P} (-1)^P\hat{P}\psi_{\alpha}(x_1)
+    \psi_{\beta}(x_2)\dots\psi_{\nu}(x_N)=
+\]
+\[ 
+    \sqrt{N!}\hatA\psi_{\alpha}(x_1)
+    \psi_{\beta}(x_2)\dots\psi_{\nu}(x_N),
+\]
+with 
+
+\begin{equation}
+  \hatA = \frac{1}{N!}\sum_{p} (-1)^p\hat{P},
+\label{antiSymmetryOperator}
+\end{equation}
+where $P$ stands for number of permutations between single-electron wave functions.
+
+
+\subsubsection{Hartree-Fock equations}
+I subsection above we introduced all needed expression to be able to imply variational principle. Let's denote ground state energy by $E_0$, then we can write using (\ref{eq:SE1}) and (\ref{eq:HartreeFockDet})that:
+ 
+\begin{equation}\label{eq:VP}
+E_0 \le E[\Phi] = \langle \Phi|\hatH|\Phi\rangle = \langle \Phi|\hatH_0|\Phi\rangle + \langle \Phi|\hatH_I|\Phi\rangle
+\end{equation}
+
+It's easy to show that (see Ch. 15.3 in \cite{one}) first term in equation (\ref{eq:VP}) can be simplified and expressed in terms of single particle Hamiltonians:
+
+\begin{equation}
+\langle \Phi|\hatH_0|\Phi\rangle  = \sum_{\mu=1}^N \langle \psi_{\mu} | \hat{h}_0 | \psi_{\mu} \rangle.
+\label{eq:fun1}
+\end{equation}
+
+Likewise it is not difficult to show that second term can be simplified into:
+
+\begin{align}
+\begin{split}
+  \langle \Phi|\hatH_I|\Phi\rangle 
+  = \frac{1}{2}\sum_{\mu=1}^N\sum_{\nu=1}^N
+    &\left[ \langle \psi_{\mu}(x_i)\psi_{\nu}(x_j)|\hatU_{0}(r_{ij})|\psi_{\mu}(x_i)\psi_{\nu}(x_j)\rangle
+    \right.
+\label{eq:fun2}\\
+  &\left.
+  - \langle \psi_{\mu}(x_i)\psi_{\nu}(x_j)
+  |\hatU_{0}(r_{ij})|\psi_{\nu}(x_i)\psi_{\mu}(x_j)\rangle
+  \right]. 
+\end{split}
+\end{align}
+
+Sum of rhs of equations (\ref{eq:fun1}) and (\ref{eq:fun2}) is a functional to be minimized according (\ref{eq:VP}).
+Defining antisymmetrized matrix element this functional can be written as:
+
+\begin{equation}
+E[\Phi] = \sum_{\mu=1}^N \langle \psi_{\mu} | \hat{h}_0 | \psi_{\mu} \rangle + \frac{1}{2}\sum_{\mu=1}^N\sum_{\nu=1}^N\langle \psi_{\mu}(x_i)\psi_{\nu}(x_j)|\hatU_{0}(r_{ij})|\psi_{\mu}(x_i)\psi_{\nu}(x_j)\rangle_{AS},
+\label{eq:funAS}
+\end{equation}
+where
+
+\begin{align}
+\begin{split}
+\langle \psi_{\mu}(x_i)\psi_{\nu}(x_j)|\hatU_{0}(r_{ij})|\psi_{\mu}(x_i)\psi_{\nu}(x_j)\rangle_{AS} = \\
+\langle \psi_{\mu}(x_i)\psi_{\nu}(x_j)|\hatU_{0}(r_{ij})|\psi_{\mu}(x_i)\psi_{\nu}(x_j)\rangle - \\
+- \langle \psi_{\mu}(x_i)\psi_{\nu}(x_j)|\hatU_{0}(r_{ij})|\psi_{\nu}(x_i)\psi_{\mu}(x_j)\rangle
+\end{split}
+\end{align}
+
+
+We will use approach where we vary coefficients in the single-particle functions expansion.  We will expand single-particle wave functions as a linear expansion in terms
+of orthogonal basis of harmonic oscillator. As we are going to solve problem numerically we introduce a cut-off for expansion($Z$).
+\[
+\psi_i  = \sum_{\lambda}^Z C_{i\lambda}\phi_{\lambda}. \label{eq:newbasis}
+\]
+
+We can rewrite energy functional (\ref{eq:funAS}) in terms of new basis:
+
+\begin{align}
+\begin{split}
+E[\Phi^{\prime}] = \sum_{i=1}^N \langle \sum_{\alpha=1}^Z C_{\alpha i}\phi_{\alpha} | \hat{h}_0 | \sum_{\beta=1}^Z C_{\beta i}\phi_{\beta} \rangle + \\
+\frac{1}{2}\sum_{i=1}^N\sum_{j=1}^N \langle \sum_{\alpha=1}^Z C_{\alpha i}\phi_{\alpha} \sum_{\beta=1}^Z C_{\beta j}\phi_{\beta} |\hatU_{ee}|
+\sum_{\gamma=1}^Z C_{i \gamma}\phi_{\gamma} \sum_{\delta=1}^Z C_{j \delta}\phi_{\delta} \rangle _{AS},
+\label{eq:newbasisintro}
+\end{split}
+\end{align}
+
+which can be simplified to:
+
+\begin{align}
+\begin{split}
+E[\Phi^{\prime}] = \sum_{i=1}^N \sum_{\alpha=1}^Z \sum_{\beta=1}^Z C_{\alpha i}^*  C_{\beta i} \langle \phi_{\alpha} | \hat{h}_0 | \phi_{\beta} \rangle + \\
+\frac{1}{2}\sum_{i=1}^N\sum_{j=1}^N  \sum_{\alpha=1}^Z \sum_{\beta=1}^Z \sum_{\gamma=1}^Z \sum_{\delta=1}^Z C_{\alpha i}^*  C_{\beta j}^* C_{i \gamma} C_{j \delta} \langle \phi_{\alpha} \phi_{\beta} |\hatU_{ee}|
+ \phi_{\gamma}  \phi_{\delta} \rangle _{AS},
+\label{eq:newbasisgood}
+\end{split}
+\end{align}
+
+We can choose coefficients $C_{i \lambda}$ such as they will represent unitary transformation which as we know from linear algebra preserves orthogonality relation. Knowing that $\phi_{\lambda}$ is orthogonal basis we find constraint relation for coefficients $C_{i \lambda}$:
+\begin{equation}
+\langle \psi_i | \psi_j \rangle=\delta_{i,j}=\sum_{\alpha\beta} C^*_{i\alpha}C_{i\beta}\langle \phi_\alpha | \phi_\beta \rangle = \sum_{\alpha} C^*_{i\alpha}C_{i\alpha},
+\label{eq:constraint}
+\end{equation}
+
+Now we apply Lagrange multiplyers method to (\ref{eq:newbasisgood}) using constraint relation (\ref{eq:constraint}). Lagrange functional to be minimized can be written as:
+
+\begin{equation}
+L[\Phi^{\prime}] = E[\Phi^{\prime}] - \sum_{i=1}^N\epsilon_i\sum_{\alpha=1}^Z C^*_{i\alpha}C_{i\alpha}
+\end{equation}
+
+Taking derivative in respect to $C^*_{i\lambda}$ ($\lambda$ is a dummy index representing one-particle state)
+
+\begin{equation}
+\frac {\delta L[\Phi^{\prime}]}{\delta C^*_{i\lambda}} = 0
+\end{equation}
+
+one obtain 
+
+\begin{equation}
+\sum_{\beta}h_{\alpha\beta}^{HF}C_{i\beta}=\epsilon_iC_{i\alpha}. \label{eq:newhf}
+\end{equation}
+
+equation (\ref{eq:newhf}) is a standard eigenvalue problem, where $h_{\alpha\beta}^{HF}$ is called Hartree-Fock matrix and is expressed as following:
+\begin{equation}\label{eq:matel}
+h_{\alpha\beta}^{HF}=\langle \phi_{\alpha} | \hat{h}_0 | \phi_{\beta} \rangle+
+\sum_{j=1}^N\sum_{\gamma=1}^Z\sum_{\delta=1}^Z C^*_{j\gamma}C_{j\delta}\langle \phi_{\alpha}\phi_{\gamma}|\hatU_{0}|\phi_{\beta}\phi_{\delta}\rangle_{AS},
+\end{equation}
+
+In equation (\ref{eq:matel}) matrix elements $\langle \phi_{\alpha} | \hat{h}_0 | \phi_{\beta} \rangle$ and $\langle \phi_{\alpha}\phi_{\gamma}|\hatU_{0}|\phi_{\beta}\phi_{\delta}\rangle_{AS}$ can be pre-calculated. According \cite{Anisimovas} analytical expression can be found for second term can be found in polar coordinates. It can simplify calculations if two-body interaction integral can be calculated with help of analytical expression instead of numerical methods which we have to employ in Cartesian basis. 
+Equation (\ref{eq:matel}) can be simplified for numerical calculations introducing so called density matrix:
+\begin{equation}
+\rho_{\gamma\delta} = \sum_{i=1}^{N}C_{i\gamma}C^*_{i\delta}.
+\label{_auto10}
+\end{equation}
+
+\subsection{Implementation}
+
+In this chapter we discuss numerical implementation of Hartree-Fock method discussed in previous chapter.
+All code was developed in C++ using QTCreator development environment. Object-oriented approach was used to have a possibility to reuse the code and to have a possibility of later applications of other many-body methods to the system under consideration. Armadillo C++ library was used to handle matrix operations.
+Code is available on github website and can be easily cloned via command:
+\begin{pseudolisting}{Obtaining the code}
+git clone git@github.com:andrei-fys/FYS4411.git
+\end{pseudolisting}
+
+\subsubsection{General code structure}
+Hartree-Fock algorithm is quite simple (it will be discussed bellow) therefore we decided to use just two classes. First class is called \code{QuantumState} and abject of this class is characterized by four attributes, specifically four quantum numbers of one quantum state. Quantum numbers are $n$ -- principal quantum number, $m$ -- angular momentum number, $s_m$ -- spin projection (1 or -1 in our implementation) and  $s$  is a spin. 
+second class is \code{QuantumDot} class representing our system of interest containing harmonic oscillator single particle basis. System is initialized by \code{QuantumDot::setUpStatesPolarSorted} method that takes on input three parameters energy cutoff, harmonic oscillator strength and number of particles.
+When object instance of \code{QuantumDot} class is created constructor calls \code{QuantumDot::setUpStatesPolarSorted} method immediately. As a result vector of \code{QuantumState} objects is being created.
+\code{QuantumDot::applyHartreeFockMethod} is then applied. In the following subsections system initialization and Hartree-Fock methods will be discussed more detailed.
+
+
+\subsubsection{Single-particle basis}
+Quantum numbers for the single-particle basis using a harmonic oscillator in two dimensions. Quantum numbers $n$ and $m$ presented in Table \ref{tab:c}.
+Here $n$ denotes the principal quantum number and $m$ is the angular momentum number having following values:
+\[
+n = 0, 1, 2, 3, ... \ ;
+m = 0, \pm 1, \pm 2, \pm 3, .... 
+\]
+
+
+
+\begin{table}[h!]
+  \caption{Quantum numbers for the single-particle basis using a harmonic oscillator in two dimensions.}
+  \label{tab:c}
+  \begin{center}
+    \begin{tabular}{ccccc}
+\hline
+\multicolumn{1}{c}{ Shell number } & \multicolumn{1}{c}{ $(n, m)$ } & \multicolumn{1}{c}{ Energy } & \multicolumn{1}{c}{ Degeneracy } & \multicolumn{1}{c}{ $N$ } \\
+7            & $(0,-6)$ $(1,-4)$ $(2,-2)$ $(3,0)$  $(2,\ 2)$  $(1,\ 4)$  $(0,\ 6)$ & $7\hbar\omega$ & 14         & 56  \\
+\hline
+6            & $(0,-5)$ $(1,-3)$ $(2,-1)$ $(2,\ 1)$  $(1,\ 3)$  $(0,\ 5)$         & $6\hbar\omega$ & 12         & 42  \\
+\hline
+5            & $(0,-4)$ $(1,-2)$ $(2,0)$ $(1,\ 2)$ $(0,\ 4)$                  & $5\hbar\omega$ & 10          & 30  \\
+\hline
+4            & $(0,-3)$ $(1,-1)$ $(1, 1)$ $(0,\ 3)$                          & $4\hbar\omega$ & 8            & 20  \\
+\hline
+3            & $(0,-2)$ $(1,0)$  $(0,\ 2)$                                    & $3\hbar\omega$ & 6          & 12  \\
+\hline
+2            & $(0,-1)$  $(0,\ 1)$                                             & $2\hbar\omega$ & 4          & 6   \\
+\hline
+1            & $(0,0)$                                                       & $\hbar\omega$  & 2          & 2   \\
+\hline
+
+
+
+
+	\end{tabular}
+  \end{center}
+\end{table}
+
+
+From Table (\ref{tab:c}) it is easy to see regularity in quantum number order for a given cut-off energy. Every odd shell number contain a set (0,0), (1,0), (2,0), (3,0) etc. where angular momentum number $m$ is always zero.
+If one starts with shell number three and consider higher energy shells one gets states (1,$\pm$1), (1,$\pm$2), (1,$\pm$3) etc.
+Generalizing mentioned example one can write general expression for principal quantum number and angular momentum number.
+Every odd shell number is a starting point for sequence:
+\[
+(n, m)\ 
+n = 0, 1, 2, 3, ... 
+\]
+\[
+m = 0, \pm 1, \pm 2, \pm 3, .... \forall  n
+\]
+where new $n$ appears on odd shells only.
+This is used in \code{QuantumDot::setUpStatesPolarSorted} method to set up vector of quantum states. It is convenient to sort vector of states in acceding order in respect to energy.
+Correctness of mentioned method can be easily checked. If one prints single particle states output should reproduce Table (\ref{tab:c}). Can be easily checked by calling \code{QuantumDot::getQuantumDotStates()}.
+After single basis states are being set up one-body $\langle \phi_{\alpha} | \hat{h}_0 | \phi_{\beta} \rangle$ and two-body $\langle \phi_{\alpha}\phi_{\gamma}|\hatU_{0}|\phi_{\beta}\phi_{\delta}\rangle_{AS}$ matrix elements are calculated and stored in memory in a brute-force way. The single-particle part is diagonal for the harmonic oscillator basis and can be calculated easily $\langle \phi_{\alpha} | \hat{h}_0 | \phi_{\beta} \rangle = \delta_{\alpha\beta}\epsilon_{\alpha}$, where $\epsilon_{\alpha}$ in polar coordinates can be calculated as following:
+\[
+\epsilon_{\alpha} = \omega(2n_{\alpha} + |m_{\alpha}| + 1)
+\]
+For the two-body matrix we used a function provided by M. Hjorth-Jensen that utilizes analytical expression from \cite{Anisimovas}.  
+
+\subsubsection{Hartree-Fock algorithm}
+
+\code{QuantumDot::applyHartreeFockMethod()} method is called after system is set up. First coefficient matrix $C$ is chosen to be an identity matrix.
+Then iteratively density matrix calculated with help of $C$-matrix. Hartree-fock matrix in turn is calculated by \ref{eq:newhf} using density matrix, one-body and two-body matrix elements.
+Every iteration Hartree-fock matrix is diagonalized in order to calculate new $C$ matrix elements and set up new Hartree-Fock potential until following condition is met:
+
+\begin{equation}
+\frac{\sum_{i}|\epsilon_{i}^{(n)} - \epsilon_{i}^{(n-1)}|}{Z} \le 10^{-8}. \label{eq:diag-cond}
+\end{equation}
+
+where summation goes over all calculated single-particle energies and $Z$ is the number of single-particle states or in our implementation simply size of state vector.
+
+Simple code for Hartree-Fock algorithm is shown in listing (2)
+\begin{pseudolisting}{Hartree-Fock code}
+void QuantumDot::applyHartreeFockMethod(){
+    int NumberOfStates = m_shells.size();
+    arma::mat C(NumberOfStates, NumberOfStates);
+
+    C.eye();
+    setCoefficientMatrix(C);
+    double difference = 10;
+    double epsilon = 10e-8;
+
+    eigval_previous.zeros(NumberOfStates);
+    int i = 0;
+    while (epsilon < difference && i < 1000){
+        arma::mat x_DensityMatrix = computeDensityMatrix();
+        computeHFmatrix(x_DensityMatrix);
+        arma::eig_sym(eigval, eigvec, m_HF);
+        setCoefficientMatrix(eigvec);
+        difference = computeHartreeFockEnergyDifference();
+        eigval_previous = eigval;
+        i++;
+
+    }
+
+    arma::mat y_DensityMatrix = computeDensityMatrix();
+    computeHartreeFockEnergy(y_DensityMatrix);
+    cout << "Number_of_iterations" << i << endl;
+}
+\end{pseudolisting}
+
+It is convenient to check correctness of Hartree-Fock algorithm implementation tha can be easily implemented by setting to zero two-body matrix elements. In this case Hartree-Fock algorithm should converge to so called unperturbated energies or simply to non-interraction particle energies. Additionally degeneracy pattern corresponding Tab. \ref{tab:c} should be seen in eigenvalues.
+
+\section{Results and discussion}\label{results}
+
+In Table (\ref{tab:results}) we presented our results. The variable $R$ represents the number of oscillator shells or simply a cut-off energy. $n$ is a number of iterations until convergence criteria is reached. Results presented for $N=2$, $N=6$, $N=12$, $N=20$ electrons and different values of $\omega$ which represents harmonic oscillator potential.
+Results for $N=2$ electrons can be directly compared with exact results from \cite{Taut}. We know from analytical solution that the precise value for ground state energy for $N=2$ electrons and $\omega=1$ is 3 a.u. where non-interaction energy is 2 a.u. and rest is interaction part. Our results show that total energy converges to value of $3.16191$ a.u. where where non-interaction energy is 2 a.u. Our numerical value for ground state energy is larger then exact as long as correlation energy is not considered in Hartree-Fock method.
+Single-particle state energies for different values of harmonic oscillator strength are presented in Tab. (\ref{tab:results1}). One can easy see that unperturbed energies $E_0$ make a significantly larger contribution to total energy on single particle state $E_tot$ at larger $\omega$. Harmonic oscillator potential which belongs to unperturbed part of Hamiltonian makes greater contribution in comparison with  Coulomb interaction. This corresponds to our results obtained before for two-electron system confined in harmonic oscillator potential \cite{proj2}.
+Convergence for two electrons is reached relatively quickly, for four leading digits convergence it is needed just $R=7$ oscillator shells. However for greater number of electrons  ($N=6$ and $N=12$) at least $Z=12$ is needed. On a separate note we should mention that for small $\omega$ values and large number of electrons ($N=12$ and $N=20$) Hartree-Fock method shows a rather divergence then convergence for a number of harmonic oscillator shells up to $Z=12$. Calculations for $Z > 12$ are required to study convergence more precise. We assume that it can be explained by the fact that correlations are more important for small values of $\omega$ \cite{Hjorth-Jensen}.
+To study energies behind Hartree-Fock limit we compare them with results obtained by diffusion Monte-Carlo(DMC) method from \cite{Hjorth-Jensen} for $\omega=1$.
+Results for $N=6$ differ for DMC and Hartree-Fock by $2.8\%$, for $N=12$ -- by $1.8\%$ and for $N=20$ -- by $1.4\%$. With other words mean-field Hartree-fock method can give relatively accurate results for a system with large number of electrons. However for low values of $\omega$ one should consider other many-boby methods.  
+
+\begin{table}[h!]
+  \caption{ Ground-state energies(in atomic units) in a two-dimensional quantum dot for different values of harmonic oscillator strength $\omega$ and different energy cut-off($Z$) for different number of electrons(N). $n$ represents number of iteration of diagonalization with the new Hartree-Fock potential till condition (\ref{eq:diag-cond})is reached.}
+  \label{tab:results}
+  %\begin{center}
+  \resizebox{\textwidth}{!}{
+    \begin{tabular}{ccc|ccc|ccc|ccc}
+    %\cline{1-12}
+    %         & \multicolumn{1}{c}{N=2} & \multicolumn{5}{c}{N=6}  \\
+    %\cline{1-12}
+     \multirow{2}{*}{} &
+      \multicolumn{1}{c}{N=2} &
+      \multicolumn{5}{c}{N=6} &
+      \multicolumn{1}{c}{N=12} &
+      \multicolumn{4}{c}{N=20} \\
+    \hline
+    \hline
+		$\omega$ & $Z/n$ & $E_{HF}$ & $\omega$ & $Z/n$ & $E_{HF}$ & $\omega$ & $Z/n$ & $E_{HF}$ &$\omega$ & $Z/n$ & $E_{HF}$  \\
+    \hline
+	   $	1 $  & $3/7$ & $3.16269$  &$	1 $  & $3/9$ & $21.5932$    &$	1 $  & $3/2$ & $73.7655$     &$  1$  & $3$     & $-         $   \\
+	   $	  $  & $4/6$ & $3.16269$  &$	  $  & $4/15$ & $20.7669$    &$	  $  & $4/16$ & $70.6738$     &$   $  & $4/2$  & $177.9633  $   \\
+	   $	  $  & $5/8$ & $3.16192$  &$	  $  & $5/16$ & $20.7484$    &$	  $  & $5/17$ & $67.5699$ 	  &$   $  & $5/109$& $168.4264  $   \\
+	   $	  $  & $6/8$ & $3.16192$  &$	  $  & $6/16$ & $20.7203$    &$	  $  & $6/27$ & $67.2969$     &$   $  & $6/18$ & $161.3397  $   \\
+   	 $	  $  & $7/8$ & $3.16191$  &$	  $  & $7/16$ & $20.7201$    &$	  $  & $7/26$ & $66.9347$     &$   $  & $7/26$ & $159.9587  $   \\
+   	 $	  $  & $8/8$ & $3.16191$  &$	  $  & $8/16$ & $20.7192$    &$	  $  & $8/27$ & $66.9231$     &$   $  & $8/37$ & $158.4002  $   \\
+     $    $  & $9/8$ & $3.161909$ &$    $  & $9/16$ & $20.7192$    &$   $  & $9/28$ & $66.9122$     &$   $  & $9/116$& $158.22601 $   \\
+     $    $  & $10/8$& $3.161909$ &$    $  & $10/13$& $20.71921$   &$   $  & $10/26$& $66.912035$   &$   $  & $10/45$& $158.01767 $   \\
+     $    $  & $11$& $-       $   &$    $  & $11/13$& $20.719216$  &$   $  & $11/25$& $66.911365$   &$   $  & $11/55$& $158.01028 $   \\
+     $    $  & $12$& $-       $   &$    $  & $12/13$& $20.719216$  &$   $  & $12/27$& $66.911364$   &$   $  & $12/53$& $158.00495 $   \\
+       \hline																					
+		$0.1  $& $3/8$  &  $0.526903$ &$0.1 $   & $3/12$ & $4.43574$  &$0.1$   & $3/2$   & $17.2723$     &$0.1$  & $3$    & $-      $ \\
+			     & $4/8$  &  $0.526903$ &$	  $   & $4/13$ & $4.01979$  &$	  $  & $4/405$ & $15.132$      &$   $  & $4/2$  & $43.3033$ \\
+			     & $5/11$  &  $0.525666$ &$	  $   & $5/13$ & $3.96315$  &$	  $  & $5/269$ & $14.0558$     &$   $  & $5/12$ & $38.0313$ \\
+			     & $6/10$  &  $0.525666$ &$	  $   & $6/20$ & $3.87062$  &$	  $  & $6/48$  & $3.42603$     &$   $  & $6/35$ & $19.6059$ \\
+			     & $7/10$  &  $0.525635$ &$	  $   & $7/22$ & $3.86313$  &$	  $  & $7/39$  & $2.02661$     &$   $  & $7/44$ & $8.89723$ \\
+			     & $8/10$  &  $0.525635$ &$	  $   & $8/23$ & $3.85288$  &$	  $  & $8/41$  & $1.73187$     &$   $  & $8/49$ & $3.50147$ \\
+			     & $9/10$  &  $0.5256348$&$	  $   & $9/23$ & $3.85259$  &        & $9/39$  & $1.845030$    &       & $9/59$ & $1.07254$\\
+			     & $10$    &  $-$        &$	  $   & $10/23$& $3.85239$  &        & $10/54$ & $1.972126$    &       & $10/60$& $0.22356$\\
+			     & $11$    &  $-$        &$	  $   & $11/23$& $3.85239$  &        & $11/64$ & $2.015833$    &       & $11/55$& $0.12611$\\
+			     & $12$    &  $-$        &$	  $   & $12/23$& $3.85238$  &        & $12/67$ & $2.022171$    &       & $12/48$& $0.31947$\\
+	\end{tabular}}                                                                                  
+  %\end{center}
+\end{table}
+
+
+
+\begin{table}[h!]
+  \caption{ Single-particle state energies(in atomic units) in a two-dimensional quantum dot for different values of harmonic oscillator strength $\omega$ and energy cut-off($Z=8$) for $N=2$ electrons. Values for first three shells are given.}
+  \label{tab:results1}
+  \begin{center}
+    \begin{tabular}{ccc|ccc}
+     \multirow{2}{*}{} &
+      \multicolumn{1}{c}{$\omega$=0.1} &
+      \multicolumn{4}{c}{$\omega$=1} \\
+    \hline
+    \hline
+		$R$ & $E_{tot}$ & $E_0$ & $R$ & $E_{tot}$ & $E_0$  \\
+    \hline
+	   $	8 $  & $0.40177 $ & $  0.1$ &$	8 $  & $2.1225  $ & $  1$  \\
+	   $	  $  & $0.40177 $ & $  0.1$ &$	  $  & $2.1225  $ & $  1$  \\
+	   $	  $  & $0.59671 $ & $  0.2$ &$	  $  & $3.43467 $ & $  2$  \\
+	   $	  $  & $0.59671 $ & $  0.2$ &$	  $  & $3.43467 $ & $  2$  \\
+   	   $	  $  & $0.59671 $ & $  0.2$ &$	  $  & $3.43467 $ & $  2$  \\
+   	   $	  $  & $0.59671 $ & $  0.2$ &$	  $  & $3.43467 $ & $  2$  \\
+       $      $  & $0.67134 $ & $  0.3$ &$    $  & $4.29336 $ & $  3$  \\
+       $      $  & $0.67134 $ & $  0.3$ &$    $  & $4.29336 $ & $  3$  \\
+       $      $  & $0.67134 $ & $  0.3$ &$    $  & $4.29336 $ & $  3$  \\
+       $      $  & $0.67134 $ & $  0.3$ &$    $  & $4.29336 $ & $  3$  \\
+				 & $0.69309 $ & $  0.3$ &        & $4.38932 $ & $  3$  \\
+				 & $0.69309 $ & $  0.3$ &        & $4.38932 $ & $  3$  \\
+	\end{tabular}                                                                                  
+  \end{center}
+\end{table}
+
+
+\section{Conclusion and further research}\label{conc}
+
+
+\newpage
+\begin{thebibliography}{2}
+
+\bibitem{manufacturing}
+I. Maximov, A. Gustafsson, H.C. Hansson, L. Samuelson, W. Seifert, A. Wiedensohler
+\textit{Fabrication of quantum dot structures using aerosol deposition and plasma etching techniques}.
+Journal of Vacuum Science and Technology A: Vacuum, Surfaces, and Films 11, 748 (1993)
+
+\bibitem{one} 
+Morten Hjorth-Jensen. 
+\textit{Computational Physics
+}. 
+Lecture Notes Fall 2015, August 2015.
+
+
+\bibitem {Anisimovas}
+E. Anisimovas and A. Matulis
+\textit{Energy spectra of few-electron quantum dots}. 
+J. Phys.: Condens. Matter 601 10.1998
+
+\bibitem {Taut}
+M. Taut.
+\textit{Two electrons in an external oscillator potential: Particular analytic solutions of a Coulomb correlation problem}.
+Phys. Rev. A, 11.1993.
+
+\bibitem {Hjorth-Jensen}
+M. Pedersen Lohne, G. Hagen, M. Hjorth-Jensen, S. Kvaal, and F. Pederiva 
+\textit{}
+Phys. Rev. B 84, 032501, 2011
+
+
+\bibitem {proj2}
+A. Kukharenka, A. Gribkovskaya,
+\textit
+{Schr\"{o}dinger's equation for two electrons in three dimensional harmonic oscillator potential
+}
+https://github.com/andrei-fys/fys4150/blob/master/Project\_2/report/Project\_2\_fys4150\_fall\_2016.tex (2016)
+
+\end{thebibliography}
+
+\end{document}
