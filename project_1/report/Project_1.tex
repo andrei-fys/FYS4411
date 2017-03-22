@@ -212,9 +212,7 @@ Where $\hatT$ is electron kinetic energy, $\hatU_{ee}$ -- coulomb interaction be
 \[
 \hatH = \sum_{i=1}^{N} \left(  -\frac{1}{2} \nabla_i^2 + \frac{1}{2} \omega^2r_i^2  \right)+\sum_{i<j}^{N}\frac{1}{r_{ij}} = \hatH_0 + \hatH_I
 \]
-Where firs term is a sum of $\hatT$ and $\hatV_{ext}$, last term represents coulomb interaction between electrons $\hatU_{ee}$. Units are transfered to natural units ($\hbar=c=e=m_e=1$) and all energies are in atomic units (a.u.). The first term($\hatH_0$) is nothing but the sum of the one-body Hamiltonians containing kinetic energy of electron and potential energy of electron in harmonic oscillator potential. Considering two-body interaction only the second part of the total Hamiltonian ($\hatH_I$) is represents interactions between each pair of electrons.
-
-equation (\ref{eq:SE}) can be rewritten as: 
+Where firs term is a sum of $\hatT$ and $\hatV_{ext}$, last term represents coulomb interaction between electrons $\hatU_{ee}$. Units are transfered to natural units ($\hbar=c=e=m_e=1$) and all energies are in atomic units (a.u.). The first term($\hatH_0$) is nothing but the sum of the one-body Hamiltonians containing kinetic energy of electron and potential energy of electron in harmonic oscillator potential. Considering two-body interaction only the second part of the total Hamiltonian ($\hatH_I$) is represents interactions between each pair of electrons. Equation (\ref{eq:SE}) can be rewritten as: 
 \begin{equation}\label{eq:SE1}
 \hatH_0 \Psi_{\lambda} + \hatH_I \Psi_{\lambda} = E \Psi_{\lambda}
 \end{equation}
@@ -250,7 +248,7 @@ where $P$ stands for number of permutations between single-electron wave functio
 
 
 \subsubsection{Hartree-Fock equations}
-In previous subsection we introduced all needed expressions to be able to imply variational principle. Let's denote ground state energy by $E_0$, then we can write using (\ref{eq:SE1}) and (\ref{eq:HartreeFockDet})that:
+In previous subsection we introduced all needed expressions to be able to imply variational principle. Let's denote ground state energy by $E_0$, then we can write using (\ref{eq:SE1}) and (\ref{eq:HartreeFockDet}) that:
  
 \begin{equation}\label{eq:VP}
 E_0 \le E[\Phi] = \langle \Phi|\hatH|\Phi\rangle = \langle \Phi|\hatH_0|\Phi\rangle + \langle \Phi|\hatH_I|\Phi\rangle
@@ -372,7 +370,7 @@ git clone git@github.com:andrei-fys/FYS4411.git
 \end{pseudolisting}
 
 \subsubsection{General code structure}
-Hartree-Fock algorithm is quite simple (it will be discussed bellow) therefore we decided to use just two classes. First class is called \code{QuantumState} and abject of this class is characterized by four attributes, specifically four quantum numbers of one quantum state. Quantum numbers are $n$ -- principal quantum number, $m$ -- angular momentum number, $s_m$ -- spin projection (1 or -1 in our implementation) and  $s$  is a spin. 
+Hartree-Fock algorithm is quite simple (it will be discussed bellow) therefore we decided to use just two classes. First class is called \code{QuantumState} and object of this class is characterized by four attributes, specifically four quantum numbers of one quantum state. Quantum numbers are $n$ -- principal quantum number, $m$ -- angular momentum number, $s_m$ -- spin projection (1 or -1 in our implementation) and  $s$  is a spin. 
 second class is \code{QuantumDot} class representing our system of interest containing harmonic oscillator single particle basis. System is initialized by \code{QuantumDot::setUpStatesPolarSorted} method that takes on input three parameters energy cutoff, harmonic oscillator strength and number of particles.
 When object instance of \code{QuantumDot} class is created constructor calls \code{QuantumDot::setUpStatesPolarSorted} method immediately. As a result vector of \code{QuantumState} objects is created.
 \code{QuantumDot::applyHartreeFockMethod} is then applied. In the following subsections system initialization and Hartree-Fock methods will be discussed more detailed.
@@ -441,7 +439,7 @@ For the two-body matrix we used a function provided by M. Hjorth-Jensen that uti
 \subsubsection{Hartree-Fock algorithm}
 
 \code{QuantumDot::applyHartreeFockMethod()} method is called after system is set up. First coefficient matrix $C$ is chosen to be an identity matrix.
-Then iteratively density matrix calculated with help of $C$-matrix. Hartree-fock matrix in turn is calculated by \ref{eq:newhf} using density matrix, one-body and two-body matrix elements.
+Then iteratively density matrix calculated with help of $C$-matrix. Hartree-fock matrix in turn is calculated by (\ref{eq:newhf}) using density matrix, one-body and two-body matrix elements.
 Every iteration Hartree-fock matrix is diagonalized in order to calculate new $C$ matrix elements and set up new Hartree-Fock potential until following condition is met:
 
 \begin{equation}
@@ -449,7 +447,7 @@ Every iteration Hartree-fock matrix is diagonalized in order to calculate new $C
 \end{equation}
 
 where summation goes over all calculated single-particle energies and $Z$ is the number of single-particle states or in our implementation simply size of state vector.
-
+For matrix decomposition \code{eig_sym} function from Armadillo library implying divide-and-conquer method is used.
 After condition \label{eq:diag-cond} is met eigenvalues can be used to compute ground-state energy: 
 \begin{equation} \label{final_energy}
 E = \sum^N_i \epsilon_i - \frac{1}{2}\sum_{\alpha\beta\gamma\delta}^Z \rho_{\alpha,\beta} \rho_{\gamma,\delta}\langle \phi_{\alpha}\phi_{\gamma}|\hatU_{0}|\phi_{\beta}\phi_{\delta}\rangle_{AS},
@@ -491,16 +489,16 @@ void QuantumDot::applyHartreeFockMethod(){
 }
 \end{pseudolisting}
 
-It is convenient to check correctness of Hartree-Fock algorithm implementation tha can be easily implemented by setting to zero two-body matrix elements. In this case Hartree-Fock algorithm should converge to so called unperturbated energies or simply to non-interraction particle energies. Additionally degeneracy pattern corresponding Tab. \ref{tab:c} should be seen in eigenvalues.
+It is convenient to check correctness of Hartree-Fock algorithm implementation that can be easily implemented by setting to zero two-body matrix elements. In this case Hartree-Fock algorithm should converge to so called unperturbed energies. Additionally degeneracy pattern corresponding Tab. \ref{tab:c} should be seen in eigenvalues.
 
 \section{Results and discussion}\label{results}
 
 In Table (\ref{tab:results}) we presented our results. The variable $R$ represents the number of oscillator shells or simply a cut-off energy. $n$ is a number of iterations until convergence criteria is reached. Results presented for $N=2$, $N=6$, $N=12$, $N=20$ electrons and different values of $\omega$ which represents harmonic oscillator potential.
-Results for $N=2$ electrons can be directly compared with exact results from \cite{Taut}. We know from analytical solution that the precise value for ground state energy for $N=2$ electrons and $\omega=1$ is 3 a.u. where non-interaction energy is 2 a.u. and rest is interaction part. Our results show that total energy converges to value of $3.16191$ a.u. where where non-interaction energy is 2 a.u. Our numerical value for ground state energy is larger then exact as long as correlation energy is not considered in Hartree-Fock method.
+Results for $N=2$ electrons can be directly compared with exact results from \cite{Taut}. We know from analytical solution that the precise value for ground state energy for $N=2$ electrons and $\omega=1$ is 3 a.u. where non-interaction energy is 2 a.u. and rest is interaction part. Our results show that total energy converges to value of $3.16191$ a.u. where non-interaction energy is 2 a.u. Our numerical value for ground state energy is larger then exact as long as correlation energy is not considered in Hartree-Fock method.
 Single-particle state energies for different values of harmonic oscillator strength are presented in Tab. (\ref{tab:results1}). One can easy see that unperturbed energies $E_0$ make a significantly larger contribution to total energy on single particle state $E_{tot}$ at larger $\omega$. Harmonic oscillator potential which belongs to unperturbed part of Hamiltonian makes greater contribution in comparison with  Coulomb interaction. This corresponds to our results obtained before for two-electron system confined in harmonic oscillator potential \cite{proj2}.
 Convergence for two electrons is reached relatively quickly, for four leading digits convergence it is needed just $R=7$ oscillator shells. However for greater number of electrons  ($N=6$ and $N=12$) at least $Z=12$ is needed. On a separate note we should mention that for small $\omega$ values and large number of electrons ($N=12$ and $N=20$) Hartree-Fock method shows a rather divergence then convergence for a number of harmonic oscillator shells up to $Z=12$. Calculations for $Z > 12$ are required to study convergence more precise. We assume that it can be explained by the fact that correlations are more important for small values of $\omega$ \cite{Hjorth-Jensen}.
 To study energies behind Hartree-Fock limit we compare them with results obtained by diffusion Monte-Carlo(DMC) method from \cite{Hjorth-Jensen} for $\omega=1$.
-Results for $N=6$ differ for DMC and Hartree-Fock by $2.8\%$, for $N=12$ -- by $1.8\%$ and for $N=20$ -- by $1.4\%$. In other words mean-field Hartree-fock method can give relatively accurate results for a system with large number of electrons. However for low values of $\omega$ one should consider other many-boby methods.  
+Results for $N=6$ differ for DMC and Hartree-Fock by $2.8\%$, for $N=12$ -- by $1.8\%$ and for $N=20$ -- by $1.4\%$. In other words mean-field Hartree-Fock method can give relatively accurate results for a system with large number of electrons. However for low values of $\omega$ one should consider other many-boby methods that are more precise.  
 
 \begin{table}[h!]
   \caption{ Ground-state energies(in atomic units) in a two-dimensional quantum dot for different values of harmonic oscillator strength $\omega$ and different energy cut-off($Z$) for different number of electrons(N). $n$ represents number of iteration of diagonalization with the new Hartree-Fock potential till condition (\ref{eq:diag-cond}) is reached.}
