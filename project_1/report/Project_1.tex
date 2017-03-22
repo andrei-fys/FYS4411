@@ -119,11 +119,11 @@ FYS 4411
 
 \maketitle
 \begin{abstract}
-
-
+We studied ground state energies of quantum dots with Hartree-Fock method. Closed shell systems were investigated with 2, 6, 12 and 20 electrons. 
+Mean-field approach can give relatively accurate results for a system with large number of electrons. However for some cases correlation energies are important and post-Hartree-Fock methods should be applied.  
 
 \end{abstract}
-\clearpage 
+
 
 
 
@@ -133,35 +133,32 @@ FYS 4411
 \section{Introduction}
 
 
-In this project we employ Hartree-Fock method to calculate ground state energy for a system of electrons confined in isotropic harmonic oscillator potential. This systems are known as quantum dots which are systems of great interest for physicists due to the possibility of their application in various fields, such as construction of quantum circuits to applications to solar cells and nano-medicine.(ssilok by suda) It is possible to create quantum dots systems by various methods experimentally for example deposition or etching\cite{manufacturing} techniques where main idea is to trap electrons  with bowl-like or spherical potential. 
+In this project we employ Hartree-Fock method to calculate ground state energy for a system of electrons confined in 2D isotropic harmonic oscillator potential. Such systems are known as quantum dots which are systems of great interest for physicists due to the possibility of their application in various fields, such as construction of quantum circuits to applications to solar cells and nano-medicine. It is possible to create quantum dots systems by various methods experimentally for example deposition or etching\cite{manufacturing} techniques where main idea is to trap electrons  with bowl-like or spherical potential. 
 
 Despite the fact that the Hartree-Fock is the simplest possible many-body method it gives good enough ratio between precision and computational costs for qualitative understanding of quantum dots properties. Besides that Hartree-Fock results can be used as a input for other more precise many-body methods.
 
 
 The report has the following structure:\\*
-In the part \ref{Part1}  we discuss in general many-body problem and assumptions allowing us to solve it. Then we introduce quantum dot system and derive Hartree-Fock equations for system of interest. At the end of the chapter, a brief discussion of the Hartree-Fock method implementation in C++ is given.
+In the part \ref{Part1}  we discuss in general many-body problem and simplifications allowing us to solve it. Then we introduce quantum dot system and derive Hartree-Fock equations for system of interest. At the end of the chapter, a brief discussion of the Hartree-Fock method implementation in C++ is given.
 Those who are already familiar with Hartree-Fock method can safely skip this part and go directly to the results and discussion part \ref{results}. Conclusion \ref{conc} is devoted to a brief overview of obtained results and possibilities for future research. 
 
- 
-
-\newpage
 
 \section{The Hartree-Fock method }\label{Part1}   %// Formalism/methods: 
 
 We start this section with discussion of the simplest many-body method that can be applied to a system of atoms. Further we will focus our attention on deriving Hartree-Fock equations and application of method to quantum dots.
 
 Main idea of Hartree-Fock method is to describe interaction between particles as effective potential where particles move independently. This leads to system of single particle Schr\"{o}dinger equations for individual one-electron wave functions with a potential determined by other electrons wave functions possibly in addition to the external potential. Such a coupling between orbitals leads to iterative scheme which we will discuss in the next chapter. \\
-  The Hartree-Fock method is a popular method in chemistry and material science. 
+  The Hartree-Fock method is a popular method in quantum chemistry and material science. 
 
 
 
 \subsubsection{Many-particle problem. Born-Oppenheimer approximation.}
 
 Real systems unlike idealized cases f.ex. harmonic oscillator can't be solved analytically in quantum mechanics.
-To deal with this we have to use approximations and simplifications solving tasks numerically.
+Clearly we have to use approximations and simplifications and solve tasks numerically.
 Let us consider a general realistic system like material that contain atoms to present main concepts and then will move our focus toward quantum dots.
 So we have a material containing electrons and nuclei without any external potential.
-Our main quantity of interest is energy of the system. If we treat system quantum mechanically energy of the system is represented by Hamiltonian and we need to solve eigenvalue problem:
+Our main quantity of interest is energy of the system. If we treat system from quantum mechanic point of view energy of the system is represented by Hamiltonian and we need to solve eigenvalue problem:
 \[
 \hatH\Psi = E\Psi
 \]
@@ -253,7 +250,7 @@ where $P$ stands for number of permutations between single-electron wave functio
 
 
 \subsubsection{Hartree-Fock equations}
-I subsection above we introduced all needed expression to be able to imply variational principle. Let's denote ground state energy by $E_0$, then we can write using (\ref{eq:SE1}) and (\ref{eq:HartreeFockDet})that:
+In previous subsection we introduced all needed expressions to be able to imply variational principle. Let's denote ground state energy by $E_0$, then we can write using (\ref{eq:SE1}) and (\ref{eq:HartreeFockDet})that:
  
 \begin{equation}\label{eq:VP}
 E_0 \le E[\Phi] = \langle \Phi|\hatH|\Phi\rangle = \langle \Phi|\hatH_0|\Phi\rangle + \langle \Phi|\hatH_I|\Phi\rangle
@@ -282,8 +279,8 @@ Likewise it is not difficult to show that second term can be simplified into:
 \end{split}
 \end{align}
 
-Sum of rhs of equations (\ref{eq:fun1}) and (\ref{eq:fun2}) is a functional to be minimized according (\ref{eq:VP}).
-Defining antisymmetrized matrix element this functional can be written as:
+Sum of right-hand sides of equations (\ref{eq:fun1}) and (\ref{eq:fun2}) is a functional to be minimized according (\ref{eq:VP}).
+Defining antisymmetric matrix element this functional can be written as:
 
 \begin{equation}
 E[\Phi] = \sum_{\mu=1}^N \langle \psi_{\mu} | \hat{h}_0 | \psi_{\mu} \rangle + \frac{1}{2}\sum_{\mu=1}^N\sum_{\nu=1}^N\langle \psi_{\mu}(x_i)\psi_{\nu}(x_j)|\hatU_{0}(r_{ij})|\psi_{\mu}(x_i)\psi_{\nu}(x_j)\rangle_{AS},
@@ -334,7 +331,7 @@ We can choose coefficients $C_{i \lambda}$ such as they will represent unitary t
 \label{eq:constraint}
 \end{equation}
 
-Now we apply Lagrange multiplyers method to (\ref{eq:newbasisgood}) using constraint relation (\ref{eq:constraint}). Lagrange functional to be minimized can be written as:
+Now we apply Lagrange multipliers method to (\ref{eq:newbasisgood}) using constraint relation (\ref{eq:constraint}). Lagrange functional to be minimized can be written as:
 
 \begin{equation}
 L[\Phi^{\prime}] = E[\Phi^{\prime}] - \sum_{i=1}^N\epsilon_i\sum_{\alpha=1}^Z C^*_{i\alpha}C_{i\alpha}
@@ -358,7 +355,7 @@ h_{\alpha\beta}^{HF}=\langle \phi_{\alpha} | \hat{h}_0 | \phi_{\beta} \rangle+
 \sum_{j=1}^N\sum_{\gamma=1}^Z\sum_{\delta=1}^Z C^*_{j\gamma}C_{j\delta}\langle \phi_{\alpha}\phi_{\gamma}|\hatU_{0}|\phi_{\beta}\phi_{\delta}\rangle_{AS},
 \end{equation}
 
-In equation (\ref{eq:matel}) matrix elements $\langle \phi_{\alpha} | \hat{h}_0 | \phi_{\beta} \rangle$ and $\langle \phi_{\alpha}\phi_{\gamma}|\hatU_{0}|\phi_{\beta}\phi_{\delta}\rangle_{AS}$ can be pre-calculated. According \cite{Anisimovas} analytical expression can be found for second term can be found in polar coordinates. It can simplify calculations if two-body interaction integral can be calculated with help of analytical expression instead of numerical methods which we have to employ in Cartesian basis. 
+In equation (\ref{eq:matel}) matrix elements $\langle \phi_{\alpha} | \hat{h}_0 | \phi_{\beta} \rangle$ and $\langle \phi_{\alpha}\phi_{\gamma}|\hatU_{0}|\phi_{\beta}\phi_{\delta}\rangle_{AS}$ can be pre-calculated. According \cite{Anisimovas} analytical expression for second term can be found in polar coordinates. It can simplify calculations if two-body interaction integral can be calculated with help of analytical expression instead of numerical methods which we have to employ in Cartesian basis. 
 Equation (\ref{eq:matel}) can be simplified for numerical calculations introducing so called density matrix:
 \begin{equation}
 \rho_{\gamma\delta} = \sum_{i=1}^{N}C_{i\gamma}C^*_{i\delta}.
@@ -368,7 +365,7 @@ Equation (\ref{eq:matel}) can be simplified for numerical calculations introduci
 \subsection{Implementation}
 
 In this chapter we discuss numerical implementation of Hartree-Fock method discussed in previous chapter.
-All code was developed in C++ using QTCreator development environment. Object-oriented approach was used to have a possibility to reuse the code and to have a possibility of later applications of other many-body methods to the system under consideration. Armadillo C++ library was used to handle matrix operations.
+All code was developed in C++ using QTCreator development environment. Object-oriented approach was used to reuse the code and to have a possibility of later applications other many-body methods to the system under consideration. Armadillo C++ library was used to handle matrix operations.
 Code is available on github website and can be easily cloned via command:
 \begin{pseudolisting}{Obtaining the code}
 git clone git@github.com:andrei-fys/FYS4411.git
@@ -377,12 +374,12 @@ git clone git@github.com:andrei-fys/FYS4411.git
 \subsubsection{General code structure}
 Hartree-Fock algorithm is quite simple (it will be discussed bellow) therefore we decided to use just two classes. First class is called \code{QuantumState} and abject of this class is characterized by four attributes, specifically four quantum numbers of one quantum state. Quantum numbers are $n$ -- principal quantum number, $m$ -- angular momentum number, $s_m$ -- spin projection (1 or -1 in our implementation) and  $s$  is a spin. 
 second class is \code{QuantumDot} class representing our system of interest containing harmonic oscillator single particle basis. System is initialized by \code{QuantumDot::setUpStatesPolarSorted} method that takes on input three parameters energy cutoff, harmonic oscillator strength and number of particles.
-When object instance of \code{QuantumDot} class is created constructor calls \code{QuantumDot::setUpStatesPolarSorted} method immediately. As a result vector of \code{QuantumState} objects is being created.
+When object instance of \code{QuantumDot} class is created constructor calls \code{QuantumDot::setUpStatesPolarSorted} method immediately. As a result vector of \code{QuantumState} objects is created.
 \code{QuantumDot::applyHartreeFockMethod} is then applied. In the following subsections system initialization and Hartree-Fock methods will be discussed more detailed.
 
 
 \subsubsection{Single-particle basis}
-Quantum numbers for the single-particle basis using a harmonic oscillator in two dimensions. Quantum numbers $n$ and $m$ presented in Table \ref{tab:c}.
+Quantum numbers for the single-particle basis use a harmonic oscillator in two dimensions. Quantum numbers $n$ and $m$ presented in Table \ref{tab:c}.
 Here $n$ denotes the principal quantum number and $m$ is the angular momentum number having following values:
 \[
 n = 0, 1, 2, 3, ... \ ;
@@ -433,7 +430,7 @@ n = 0, 1, 2, 3, ...
 m = 0, \pm 1, \pm 2, \pm 3, .... \forall  n
 \]
 where new $n$ appears on odd shells only.
-This is used in \code{QuantumDot::setUpStatesPolarSorted} method to set up vector of quantum states. It is convenient to sort vector of states in acceding order in respect to energy.
+This is used in \code{QuantumDot::setUpStatesPolarSorted} method to set up vector of quantum states. It is convenient to sort vector of states in acceding order with respect to energy.
 Correctness of mentioned method can be easily checked. If one prints single particle states output should reproduce Table (\ref{tab:c}). Can be easily checked by calling \code{QuantumDot::getQuantumDotStates()}.
 After single basis states are being set up one-body $\langle \phi_{\alpha} | \hat{h}_0 | \phi_{\beta} \rangle$ and two-body $\langle \phi_{\alpha}\phi_{\gamma}|\hatU_{0}|\phi_{\beta}\phi_{\delta}\rangle_{AS}$ matrix elements are calculated and stored in memory in a brute-force way. The single-particle part is diagonal for the harmonic oscillator basis and can be calculated easily $\langle \phi_{\alpha} | \hat{h}_0 | \phi_{\beta} \rangle = \delta_{\alpha\beta}\epsilon_{\alpha}$, where $\epsilon_{\alpha}$ in polar coordinates can be calculated as following:
 \[
@@ -489,13 +486,13 @@ It is convenient to check correctness of Hartree-Fock algorithm implementation t
 
 In Table (\ref{tab:results}) we presented our results. The variable $R$ represents the number of oscillator shells or simply a cut-off energy. $n$ is a number of iterations until convergence criteria is reached. Results presented for $N=2$, $N=6$, $N=12$, $N=20$ electrons and different values of $\omega$ which represents harmonic oscillator potential.
 Results for $N=2$ electrons can be directly compared with exact results from \cite{Taut}. We know from analytical solution that the precise value for ground state energy for $N=2$ electrons and $\omega=1$ is 3 a.u. where non-interaction energy is 2 a.u. and rest is interaction part. Our results show that total energy converges to value of $3.16191$ a.u. where where non-interaction energy is 2 a.u. Our numerical value for ground state energy is larger then exact as long as correlation energy is not considered in Hartree-Fock method.
-Single-particle state energies for different values of harmonic oscillator strength are presented in Tab. (\ref{tab:results1}). One can easy see that unperturbed energies $E_0$ make a significantly larger contribution to total energy on single particle state $E_tot$ at larger $\omega$. Harmonic oscillator potential which belongs to unperturbed part of Hamiltonian makes greater contribution in comparison with  Coulomb interaction. This corresponds to our results obtained before for two-electron system confined in harmonic oscillator potential \cite{proj2}.
+Single-particle state energies for different values of harmonic oscillator strength are presented in Tab. (\ref{tab:results1}). One can easy see that unperturbed energies $E_0$ make a significantly larger contribution to total energy on single particle state $E_{tot}$ at larger $\omega$. Harmonic oscillator potential which belongs to unperturbed part of Hamiltonian makes greater contribution in comparison with  Coulomb interaction. This corresponds to our results obtained before for two-electron system confined in harmonic oscillator potential \cite{proj2}.
 Convergence for two electrons is reached relatively quickly, for four leading digits convergence it is needed just $R=7$ oscillator shells. However for greater number of electrons  ($N=6$ and $N=12$) at least $Z=12$ is needed. On a separate note we should mention that for small $\omega$ values and large number of electrons ($N=12$ and $N=20$) Hartree-Fock method shows a rather divergence then convergence for a number of harmonic oscillator shells up to $Z=12$. Calculations for $Z > 12$ are required to study convergence more precise. We assume that it can be explained by the fact that correlations are more important for small values of $\omega$ \cite{Hjorth-Jensen}.
 To study energies behind Hartree-Fock limit we compare them with results obtained by diffusion Monte-Carlo(DMC) method from \cite{Hjorth-Jensen} for $\omega=1$.
-Results for $N=6$ differ for DMC and Hartree-Fock by $2.8\%$, for $N=12$ -- by $1.8\%$ and for $N=20$ -- by $1.4\%$. With other words mean-field Hartree-fock method can give relatively accurate results for a system with large number of electrons. However for low values of $\omega$ one should consider other many-boby methods.  
+Results for $N=6$ differ for DMC and Hartree-Fock by $2.8\%$, for $N=12$ -- by $1.8\%$ and for $N=20$ -- by $1.4\%$. In other words mean-field Hartree-fock method can give relatively accurate results for a system with large number of electrons. However for low values of $\omega$ one should consider other many-boby methods.  
 
 \begin{table}[h!]
-  \caption{ Ground-state energies(in atomic units) in a two-dimensional quantum dot for different values of harmonic oscillator strength $\omega$ and different energy cut-off($Z$) for different number of electrons(N). $n$ represents number of iteration of diagonalization with the new Hartree-Fock potential till condition (\ref{eq:diag-cond})is reached.}
+  \caption{ Ground-state energies(in atomic units) in a two-dimensional quantum dot for different values of harmonic oscillator strength $\omega$ and different energy cut-off($Z$) for different number of electrons(N). $n$ represents number of iteration of diagonalization with the new Hartree-Fock potential till condition (\ref{eq:diag-cond}) is reached.}
   \label{tab:results}
   %\begin{center}
   \resizebox{\textwidth}{!}{
@@ -540,7 +537,7 @@ Results for $N=6$ differ for DMC and Hartree-Fock by $2.8\%$, for $N=12$ -- by $
 
 
 \begin{table}[h!]
-  \caption{ Single-particle state energies(in atomic units) in a two-dimensional quantum dot for different values of harmonic oscillator strength $\omega$ and energy cut-off($Z=8$) for $N=2$ electrons. Values for first three shells are given.}
+  \caption{ Single-particle state energies(in atomic units) in a two-dimensional quantum dot for different values of harmonic oscillator strength $\omega$ for $N=2$ electrons and energy cut-off($Z=8$). Values for first three shells are given.}
   \label{tab:results1}
   \begin{center}
     \begin{tabular}{ccc|ccc}
