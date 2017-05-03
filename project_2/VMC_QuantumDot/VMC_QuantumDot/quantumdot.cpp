@@ -7,18 +7,19 @@
 
 using namespace std;
 
-
-
 QuantumDot::QuantumDot(double h_omega, int ParticlesNumber){
     initialize(ParticlesNumber);
     homega = h_omega;
+    m_homega2 = h_omega*h_omega;
 }
 
 void QuantumDot::setVariationalParameters(double first, double second){
     alpha = first;
+    m_alpha2 = first*first;
     beta = second;
+    m_alphaomega = alpha*homega;
+    m_alphaomega2 = m_alphaomega*m_alphaomega;
 }
-
 
 void QuantumDot::initialize(int ParticlesNumber){
     random_device rd;
@@ -39,7 +40,7 @@ void QuantumDot::applyVMC(int MCSamples){
     random_device rd;
     mt19937_64 gen(rd());
     uniform_real_distribution<double> RandomNumberGenerator(0.0,1.0);
-    normal_distribution<double> GaussianBlur(0.0,1);
+    normal_distribution<double> GaussianBlur(0.0,0.5);
     m_localEnergy.clear();
     int MC_counter = 0;
     double MeanLocalEnergySquared = 0;
@@ -70,8 +71,8 @@ void QuantumDot::applyVMC(int MCSamples){
             //start of Metropolis-Hasting´s
             double Rold2 = particle->position.lengthSquared();
             double Rnew2 = particle->positionNew.lengthSquared();
-            double w = exp(alpha*homega*(Rold2 - Rnew2));
-            w *= calculateTransitionProbabilityImpSampl(j);
+            double w = exp(alpha*homega*(Rold2 - Rnew2))*calculateJastrowRatio(j);
+            w *= calculateGreenFunctionRatio(j);
             double r = RandomNumberGenerator(gen);
             if (w >= r) {
                particle->position.setX(X_new);
@@ -82,7 +83,7 @@ void QuantumDot::applyVMC(int MCSamples){
         MC_counter++;
         double LocalEnergy = calculateLocalEnergy();
         //writeLocalEnergyToFile(LocalEnergy, ResultsFile);
-        m_localEnergy.push_back(LocalEnergy);
+        //m_localEnergy.push_back(LocalEnergy);
         MeanLocalEnergySquared += LocalEnergy*LocalEnergy;
         MeanLocalEnergy += LocalEnergy;
     }
@@ -91,9 +92,9 @@ void QuantumDot::applyVMC(int MCSamples){
     cout << "Energy "  << Energy << endl;
     cout << "Energy2 " << Energy2 << endl;
     cout << "Variance " << (Energy2 - Energy*Energy)/MCSamples << endl;
-    cout << "Accept " << accept/2 << endl;
+    cout << "Accept " << ((double)accept/(double)(2.0*MCSamples))*100.0 << endl;
     cout << "MCcounter " << MC_counter << endl;
-    writeVectorToFile(ResultsFile);
+    //writeVectorToFile(ResultsFile);
 }
 
 void QuantumDot::applyVMCstandard(int MCSamples){
@@ -105,7 +106,6 @@ void QuantumDot::applyVMCstandard(int MCSamples){
     m_localEnergy.clear();
     int MC_counter = 0;
     double h = 1.3;
-    //double h = 0.005;
     double MeanLocalEnergySquared = 0;
     double MeanLocalEnergy = 0;
     int accept=0;
@@ -143,7 +143,7 @@ void QuantumDot::applyVMCstandard(int MCSamples){
     writeVectorToFile(ResultsFile);
 }
 
-double QuantumDot::calculateTransitionProbabilityImpSampl(size_t j){
+double QuantumDot::calculateGreenFunctionRatio(size_t j){
     double QForceOld;
     double QForceNew;
     double LengthOld = 0;
@@ -161,31 +161,58 @@ double QuantumDot::calculateTransitionProbabilityImpSampl(size_t j){
             LengthNew = moving_particle->positionNew.length();
         }
     }
-
-
     double GreenPart = (0.25*D*dt*(QForceOld*QForceOld - QForceNew*QForceNew)) + 0.5*(LengthOld - LengthNew)*(QForceOld + QForceNew);
     return exp(GreenPart);
 }
 
-
-
-
-
-/*double computeRelativeDistance(){
-    for(int i=0; i<QuantumDot.m_particles.size(); i++) {
-       Particle *part_i = QuantumDot.m_particles[i];
-       for(int j=i+1; j<QuantumDot.m_particles.size(); j++) {
-           Particle *part_j = QuantumDot.m_particles[j];
-
-           double dx = part_i->position[0] - part_j->position[0];
-           double dy = part_i->position[1] - part_j->position[1];
-           return sqrt(dx*dx + dy*dy);
-       }
+double QuantumDot::calculateJastrowRatio(size_t j){
+    if (m_Jastrow == 0) {
+        return 1.0;
+    } else {
+        Particle *moving_particle = m_particles[j];
+        vec3 RelativeDistance_old;
+        vec3 RelativeDistance_new;
+        for(size_t i=0; i< m_particles.size() ; i++) {
+            Particle *particle = m_particles[i];
+            if (i != j){
+                RelativeDistance_old = particle->position - moving_particle->position;
+                RelativeDistance_new = particle->position - moving_particle->positionNew;
+            }
+        }
+        return exp(2.0*m_a*(1.0/(beta + 1.0/RelativeDistance_new.length()) - 1.0/(beta + 1.0/RelativeDistance_old.length())));
     }
 }
-*/
 
 double QuantumDot::calculateLocalEnergy(){
+    double R2 = 0;
+    vec3 RelativeDistance;
+    if (m_Jastrow == 0) {
+        calculateLocalEnergyWithoutJastrow();
+    } else {
+        for(size_t i=0; i<m_particles.size(); i++) {
+            Particle *particle_i = m_particles[i];
+            double length2 = particle_i->position.lengthSquared();
+            R2 += length2;
+            for(size_t j=0; j<m_particles.size(); j++) {
+                Particle *particle_j = m_particles[j];
+                if (i < j){
+                    RelativeDistance = particle_i->position - particle_j->position;
+                }
+            }
+        }
+        double R12 = RelativeDistance.length();
+        double R12beta = (1.0 + R12*beta);
+        double R12beta2 = R12beta*R12beta;
+        double LocalEnergyWithoutCoulomb = -0.5*(m_alphaomega2*R2 - 4.0*m_alphaomega - 2.0*m_a*m_alphaomega*R12/R12beta2 + (2.0*m_a/R12beta2)*(m_a/R12beta2 + 1.0/R12 - 2.0*beta/R12beta)) + 0.5*m_homega2*R2;
+        if (m_Coulomb == 0){
+            return LocalEnergyWithoutCoulomb;
+        } else {
+            return LocalEnergyWithoutCoulomb + 1.0/R12;
+        }
+    }
+}
+
+double QuantumDot::calculateLocalEnergyWithoutJastrow(){
     double R2 = 0;
     vec3 RelativeDistance;
     if (m_Coulomb == 0) {
@@ -206,11 +233,9 @@ double QuantumDot::calculateLocalEnergy(){
                 }
             }
         }
-    return 0.5*homega*homega*(1.0 - alpha*alpha)*R2 +2.0*alpha*homega + 1.0/RelativeDistance.length();
+    return 0.5*m_homega2*(1.0 - m_alpha2)*R2 +2.0*m_alphaomega + 1.0/RelativeDistance.length();
     }
 }
-
-
 
 void QuantumDot::getQuantumDotParticlesCoordinates(){
     for(Particle *particle : m_particles){
@@ -247,9 +272,16 @@ void QuantumDot::getQuantumDotStatesNumber(){
     cout << "Number of electrons is " << m_shells.size() << endl;
 }
 
-
 void QuantumDot::setCoulombInterraction(int trigger){
     m_Coulomb = trigger;
+}
+
+void QuantumDot::setJastrowFactor(int trigger){
+    m_Jastrow = trigger;
+}
+
+void QuantumDot::setSpinParameter(int trigger){
+    m_a = trigger;
 }
 
 void QuantumDot::writeLocalEnergyToFile(double LocalEnergy, string ResultsFile){

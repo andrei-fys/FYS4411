@@ -8,10 +8,11 @@ int main(int numberOfArguments, char **argumentList)
 
     int NumberOfElectrons = 2;
     double HOStrenth = 1;
-    //int MonteCarloSamples = 1048576; //2^20 = 1048576;
-    int MonteCarloSamples = 8388608; //2¨^23
+    int MonteCarloSamples = 1048576; //2^20 = 1048576;
+    //int MonteCarloSamples = 8388608; //2^23
+    //int MonteCarloSamples = 1000;
     double alpha = 1.0;
-    double beta = 0.0;
+    double beta = 0.3;
 
 
     // If a first argument is provided, it is the number of electrons
@@ -24,10 +25,12 @@ int main(int numberOfArguments, char **argumentList)
 
     QuantumDot qdot(HOStrenth, NumberOfElectrons);
     qdot.setCoulombInterraction(1); // 0 - to turn off Coulomb interraction
+    qdot.setJastrowFactor(1);       // 0 - to turn off correlations
+    qdot.setSpinParameter(1);       // 1 - antiparallel, 1/3 - parallel
     qdot.setVariationalParameters(alpha, beta);
     qdot.applyVMC(MonteCarloSamples);
     cout << "=================================" << endl;
-    qdot.applyVMCstandard(MonteCarloSamples);
+    //qdot.applyVMCstandard(MonteCarloSamples); //works without Jastrow factor, just with Coulomb on/off
 
     //qdot.getQuantumDotParticlesCoordinates();
 
