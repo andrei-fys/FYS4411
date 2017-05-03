@@ -46,10 +46,10 @@ void QuantumDot::applyVMC(int MCSamples){
     double MeanLocalEnergy = 0;
     int accept=0;
     for(int i=0; i<MCSamples; i++){
-        for(int j=0; j< m_particles.size() ; j++) {
+        for(size_t j=0; j< m_particles.size() ; j++) {
             Particle *particle = m_particles[j];
             Particle *particlemove;
-            for(int k=0; k< m_particles.size() ; k++) {
+            for(size_t k=0; k< m_particles.size() ; k++) {
                 if (k != j){
                     particlemove = m_particles[k];
                 }
@@ -143,13 +143,13 @@ void QuantumDot::applyVMCstandard(int MCSamples){
     writeVectorToFile(ResultsFile);
 }
 
-double QuantumDot::calculateTransitionProbabilityImpSampl(int j){
+double QuantumDot::calculateTransitionProbabilityImpSampl(size_t j){
     double QForceOld;
     double QForceNew;
     double LengthOld = 0;
     double LengthNew = 0;
     QuantumForce QForce(alpha, homega);
-    for(int i=0; i< m_particles.size() ; i++) {
+    for(size_t i=0; i< m_particles.size() ; i++) {
         Particle *particle = m_particles[i];
         Particle *moving_particle = m_particles[j];
         if (i != j){
@@ -195,11 +195,11 @@ double QuantumDot::calculateLocalEnergy(){
         }
         return 0.5*homega*homega*(1.0 - alpha*alpha)*R2 +2.0*alpha*homega;
     } else {
-        for(int i=0; i<m_particles.size(); i++) {
+        for(size_t i=0; i<m_particles.size(); i++) {
             Particle *particle_i = m_particles[i];
             double length2 = particle_i->position.lengthSquared();
             R2 += length2;
-            for(int j=0; j<m_particles.size(); j++) {
+            for(size_t j=0; j<m_particles.size(); j++) {
                 Particle *particle_j = m_particles[j];
                 if (i < j){
                     RelativeDistance = particle_i->position - particle_j->position;

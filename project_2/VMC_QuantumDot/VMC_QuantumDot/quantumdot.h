@@ -36,7 +36,7 @@ private:
     int m_Coulomb;
     void setUpStatesCartesian(int);
     double calculateLocalEnergy();
-    double calculateTransitionProbabilityImpSampl(int);
+    double calculateTransitionProbabilityImpSampl(size_t);
     void writeLocalEnergyToFile(double, string);
     void writeVectorToFile(string);
 
