@@ -20,11 +20,12 @@ public:
     void getQuantumDotParticlesCoordinates();
     void applyVMC(int);
     void applyVMCstandard(int);
-    double Alpha() { return alpha; };
-    double Beta() { return beta; };
+    double Alpha() { return alpha; }
+    double Beta() { return beta; }
     void setCoulombInterraction(int);
     void setJastrowFactor(int);
     void setSpinParameter(int);
+    void applySteepestDescent(int, int, double, double);
 
 private:
     std::vector<Particle*> m_particles;
@@ -34,7 +35,7 @@ private:
     int m_sm = -1;
     const double m_s = 0.5;
     const double D = 0.5;     // difussion constant for importance sampling
-    const double dt = 0.01; // dt for importance sampling
+    const double dt = 0.001; // dt for importance sampling
     int m_Coulomb;
     int m_Jastrow;
     double m_homega2;

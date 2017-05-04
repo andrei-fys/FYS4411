@@ -10,7 +10,11 @@ int main(int numberOfArguments, char **argumentList)
     double HOStrenth = 1;
     //int MonteCarloSamples = 1048576; //2^20 = 1048576;
     //int MonteCarloSamples = 8388608; //2^23
+    int MonteCarloSamplesVariational = 100;
     int MonteCarloSamples = 1000000;
+    double tolerance = 10e-7;
+    int MaxSteepestDescentIterations = 100;
+    //double SteepestDescentStep = "?????";
     double alpha = 1.0;
     double beta = 0.3;
 
@@ -31,8 +35,26 @@ int main(int numberOfArguments, char **argumentList)
     qdot.applyVMC(MonteCarloSamples);
     cout << "=================================" << endl;
     //qdot.applyVMCstandard(MonteCarloSamples); //works without Jastrow factor, just with Coulomb on/off
-
     //qdot.getQuantumDotParticlesCoordinates();
+
+
+/*
+    QuantumDot qdot(HOStrenth, NumberOfElectrons);
+    qdot.setCoulombInterraction(1); // 0 - to turn off Coulomb interraction
+    qdot.setJastrowFactor(1);       // 0 - to turn off correlations
+    qdot.setSpinParameter(1);       // 1 - antiparallel, 1/3 - parallel
+    qdot.setVariationalParameters(alpha, beta);
+
+    qdot.applySteepestDescent(MonteCarloSamplesVariational,
+                              MaxSteepestDescentIterations,
+                              SteepestDescentStep,
+                              tolerance);
+
+    qdot.applyVMC(MonteCarloSamples);
+    cout << "=================================" << endl;
+
+*/
+
 
 
 }

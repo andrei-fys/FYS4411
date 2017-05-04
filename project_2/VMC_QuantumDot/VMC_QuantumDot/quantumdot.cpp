@@ -40,7 +40,7 @@ void QuantumDot::applyVMC(int MCSamples){
     random_device rd;
     mt19937_64 gen(rd());
     uniform_real_distribution<double> RandomNumberGenerator(0.0,1.0);
-    normal_distribution<double> GaussianBlur(0.0,0.5);
+    normal_distribution<double> GaussianBlur(0.0, 1.0);
     m_localEnergy.clear();
     int MC_counter = 0;
     double MeanLocalEnergySquared = 0;
@@ -301,3 +301,24 @@ void QuantumDot::writeVectorToFile(string ResultsFile){
     }
     ofile.close();
 }
+
+void QuantumDot::applySteepestDescent(int MonteCarloSamplesVariational,
+                                      int MaxSteepestDescentIterations,
+                                      double SteepestDescentStep,
+                                      double tolerance){
+    vec3 VarParametersOld(alpha, beta, 0.0);
+    vec3 VarParametersNew;
+    vec3 LocalEnergyExpectDerivative;
+/*    int i = 0;
+    double Diff = 0.1;
+    while (i <= MaxSteepestDescentIterations || Diff < tolerance ){
+        applyVMC(MonteCarloSamplesVariational);
+        LocalEnergyExpectDerivative(ELalpha, ELbeta, 0.0);
+        LocalEnergyExpectDerivative *= SteepestDescentStep;
+        VarParametersNew = VarParametersOld - LocalEnergyExpectDerivative;
+        setVariationalParameters(VarParametersNew[0], VarParametersNew[1]);
+        i++;
+    }
+*/
+}
+
