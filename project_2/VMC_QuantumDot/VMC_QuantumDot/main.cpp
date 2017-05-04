@@ -8,9 +8,9 @@ int main(int numberOfArguments, char **argumentList)
 
     int NumberOfElectrons = 2;
     double HOStrenth = 1;
-    int MonteCarloSamples = 1048576; //2^20 = 1048576;
+    //int MonteCarloSamples = 1048576; //2^20 = 1048576;
     //int MonteCarloSamples = 8388608; //2^23
-    //int MonteCarloSamples = 1000;
+    int MonteCarloSamples = 1000000;
     double alpha = 1.0;
     double beta = 0.3;
 
