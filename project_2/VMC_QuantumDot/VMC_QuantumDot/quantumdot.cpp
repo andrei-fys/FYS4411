@@ -309,6 +309,7 @@ void QuantumDot::applySteepestDescent(int MonteCarloSamplesVariational,
     vec3 VarParametersOld(alpha, beta, 0.0);
     vec3 VarParametersNew;
     vec3 LocalEnergyExpectDerivative;
+    m_InsideSteepestDescent = true;
 /*    int i = 0;
     double Diff = 0.1;
     while (i <= MaxSteepestDescentIterations || Diff < tolerance ){
@@ -319,6 +320,7 @@ void QuantumDot::applySteepestDescent(int MonteCarloSamplesVariational,
         setVariationalParameters(VarParametersNew[0], VarParametersNew[1]);
         i++;
     }
+    m_InsideSteepestDescent = false;
 */
 }
 
