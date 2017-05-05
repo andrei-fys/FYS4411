@@ -9,14 +9,13 @@ int main(int numberOfArguments, char **argumentList)
     int NumberOfElectrons = 2;
     double HOStrenth = 1;
     //int MonteCarloSamples = 1048576; //2^20 = 1048576;
-    //int MonteCarloSamples = 8388608; //2^23
-    int MonteCarloSamplesVariational = 100;
-    int MonteCarloSamples = 1000000;
+    int MonteCarloSamples = 8388608; //2^23
+    int MonteCarloSamplesVariational = 1000000;
     double tolerance = 10e-7;
-    int MaxSteepestDescentIterations = 100;
-    //double SteepestDescentStep = "?????";
-    double alpha = 1.0;
-    double beta = 0.3;
+    int MaxSteepestDescentIterations = 50;
+    double SteepestDescentStep = 0.3;
+    double alpha = 0.98;
+    double beta = 0.4;
 
 
     // If a first argument is provided, it is the number of electrons
@@ -26,7 +25,7 @@ int main(int numberOfArguments, char **argumentList)
     // If a third argument is provided, it is the number of Monte Carlo samples
     if(numberOfArguments > 2) MonteCarloSamples = atof(argumentList[3]);
 
-
+/*
     QuantumDot qdot(HOStrenth, NumberOfElectrons);
     qdot.setCoulombInterraction(1); // 0 - to turn off Coulomb interraction
     qdot.setJastrowFactor(1);       // 0 - to turn off correlations
@@ -37,9 +36,9 @@ int main(int numberOfArguments, char **argumentList)
     //qdot.applyVMCstandard(MonteCarloSamples); //works without Jastrow factor, just with Coulomb on/off
     //qdot.getQuantumDotParticlesCoordinates();
 
+*/
 
-/*
-    QuantumDot qdot(HOStrenth, NumberOfElectrons);
+/*    QuantumDot qdot(HOStrenth, NumberOfElectrons);
     qdot.setCoulombInterraction(1); // 0 - to turn off Coulomb interraction
     qdot.setJastrowFactor(1);       // 0 - to turn off correlations
     qdot.setSpinParameter(1);       // 1 - antiparallel, 1/3 - parallel
@@ -52,9 +51,11 @@ int main(int numberOfArguments, char **argumentList)
 
     qdot.applyVMC(MonteCarloSamples);
     cout << "=================================" << endl;
-
 */
-
-
-
+    QuantumDot qdot(HOStrenth, NumberOfElectrons);
+    qdot.setCoulombInterraction(1); // 0 - to turn off Coulomb interraction
+    qdot.setJastrowFactor(1);       // 0 - to turn off correlations
+    qdot.setSpinParameter(1);       // 1 - antiparallel, 1/3 - parallel
+    qdot.setVariationalParameters(alpha, beta);
+    qdot.applyVMCstandard(MonteCarloSamples);
 }

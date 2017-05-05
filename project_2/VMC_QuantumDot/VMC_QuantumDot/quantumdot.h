@@ -43,6 +43,20 @@ private:
     double m_alphaomega;
     double m_alphaomega2;
     double m_a;
+    //double m_Energy;
+    //SteepestDescent variables
+    bool m_InsideSteepestDescent;
+    double m_ExpectationLocalEnergyDerivativeAlphaSecondTerm;
+    double m_ExpectationLocalEnergyDerivativeBetaSecondTerm;
+    double m_ExpectationLocalEnergyDerivativeAlphaFirstTerm;
+    double m_ExpectationLocalEnergyDerivativeBetaFirstTerm;
+    double m_LocalEnergyWFDerivativeAlpha;
+    double m_LocalEnergyWFDerivativeBeta;
+    double m_MeanLocalEnergyWFDerivativeAlpha;
+    double m_MeanLocalEnergyWFDerivativeBeta;
+    double m_ExpectationLocalEnergyDerivativeAlpha;
+    double m_ExpectationLocalEnergyDerivativeBeta;
+
     void setUpStatesCartesian(int);
     double calculateLocalEnergy();
     double calculateLocalEnergyWithoutJastrow();
@@ -50,6 +64,7 @@ private:
     double calculateJastrowRatio(size_t);
     void writeLocalEnergyToFile(double, string);
     void writeVectorToFile(string);
+    void resetSteepestDescentHelpVars();
 
 
     //double calculateKineticEnergyNumerical();

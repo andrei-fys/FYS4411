@@ -11,6 +11,18 @@ QuantumDot::QuantumDot(double h_omega, int ParticlesNumber){
     initialize(ParticlesNumber);
     homega = h_omega;
     m_homega2 = h_omega*h_omega;
+    m_InsideSteepestDescent = false;
+    m_ExpectationLocalEnergyDerivativeAlphaSecondTerm = 0.0;
+    m_ExpectationLocalEnergyDerivativeBetaSecondTerm = 0.0;
+    m_ExpectationLocalEnergyDerivativeAlphaFirstTerm = 0.0;
+    m_ExpectationLocalEnergyDerivativeBetaFirstTerm = 0.0;
+    m_LocalEnergyWFDerivativeAlpha = 0.0;
+    m_LocalEnergyWFDerivativeBeta = 0.0;
+    m_MeanLocalEnergyWFDerivativeAlpha = 0.0;
+    m_MeanLocalEnergyWFDerivativeBeta = 0.0;
+    m_ExpectationLocalEnergyDerivativeAlpha = 0.0;
+    m_ExpectationLocalEnergyDerivativeBeta = 0.0;
+    //m_Energy = 0.0;
 }
 
 void QuantumDot::setVariationalParameters(double first, double second){
@@ -46,6 +58,8 @@ void QuantumDot::applyVMC(int MCSamples){
     double MeanLocalEnergySquared = 0;
     double MeanLocalEnergy = 0;
     int accept=0;
+    cout << "alpha "  << alpha << endl;
+    cout << "beta " << beta << endl;
     for(int i=0; i<MCSamples; i++){
         for(size_t j=0; j< m_particles.size() ; j++) {
             Particle *particle = m_particles[j];
@@ -82,13 +96,29 @@ void QuantumDot::applyVMC(int MCSamples){
         }
         MC_counter++;
         double LocalEnergy = calculateLocalEnergy();
+        if (m_InsideSteepestDescent = true){
+            m_MeanLocalEnergyWFDerivativeAlpha += m_LocalEnergyWFDerivativeAlpha;
+            m_MeanLocalEnergyWFDerivativeBeta += m_LocalEnergyWFDerivativeBeta;
+            m_ExpectationLocalEnergyDerivativeAlphaFirstTerm += m_LocalEnergyWFDerivativeAlpha*LocalEnergy;
+            m_ExpectationLocalEnergyDerivativeBetaFirstTerm += m_LocalEnergyWFDerivativeBeta*LocalEnergy;
+        }
         //writeLocalEnergyToFile(LocalEnergy, ResultsFile);
         //m_localEnergy.push_back(LocalEnergy);
         MeanLocalEnergySquared += LocalEnergy*LocalEnergy;
         MeanLocalEnergy += LocalEnergy;
+
     }
     double Energy =  (double)MeanLocalEnergy/MCSamples;
     double Energy2 = (double)MeanLocalEnergySquared/MCSamples;
+    if (m_InsideSteepestDescent = true){
+        m_ExpectationLocalEnergyDerivativeAlphaSecondTerm = Energy*((double)m_MeanLocalEnergyWFDerivativeAlpha/MCSamples);
+        m_ExpectationLocalEnergyDerivativeBetaSecondTerm = Energy*((double)m_MeanLocalEnergyWFDerivativeBeta/MCSamples);
+        m_ExpectationLocalEnergyDerivativeAlphaFirstTerm /= (double)MCSamples;
+        m_ExpectationLocalEnergyDerivativeBetaFirstTerm /= (double)MCSamples;
+        m_ExpectationLocalEnergyDerivativeAlpha = 2.0*(m_ExpectationLocalEnergyDerivativeAlphaFirstTerm-m_ExpectationLocalEnergyDerivativeAlphaSecondTerm);
+        m_ExpectationLocalEnergyDerivativeBeta = 2.0*(m_ExpectationLocalEnergyDerivativeBetaFirstTerm-m_ExpectationLocalEnergyDerivativeBetaSecondTerm);
+    }
+    //m_Energy = Energy;
     cout << "Energy "  << Energy << endl;
     cout << "Energy2 " << Energy2 << endl;
     cout << "Variance " << (Energy2 - Energy*Energy)/MCSamples << endl;
@@ -110,7 +140,9 @@ void QuantumDot::applyVMCstandard(int MCSamples){
     double MeanLocalEnergy = 0;
     int accept=0;
     for(int i=0; i<MCSamples; i++){ // MC sampling
-        for(Particle *particle : m_particles){
+        //for(Particle *particle : m_particles){
+        for(size_t j=0; j< m_particles.size() ; j++) {
+            Particle *particle = m_particles[j];
             double X_new = particle->position.x() + (RandomNumberGenerator(gen)*h);
             double Y_new = particle->position.y() + (RandomNumberGenerator(gen)*h);
             particle->positionNew.setX(X_new);
@@ -119,6 +151,9 @@ void QuantumDot::applyVMCstandard(int MCSamples){
             double Rold2 = particle->position.lengthSquared();
             double Rnew2 = particle->positionNew.lengthSquared();
             double w = exp(alpha*homega*(Rold2 - Rnew2));
+            if (m_Jastrow == 1) {
+                w *= calculateJastrowRatio(j);
+            }
             double r = RandomNumberGenerator1(gen);
             if (w >= r) {
                particle->position.setX(X_new);
@@ -128,7 +163,7 @@ void QuantumDot::applyVMCstandard(int MCSamples){
         }
         MC_counter++;
         double LocalEnergy = calculateLocalEnergy();
-        m_localEnergy.push_back(LocalEnergy);
+        //m_localEnergy.push_back(LocalEnergy);
         //writeLocalEnergyToFile(LocalEnergy, ResultsFile);
         MeanLocalEnergySquared += LocalEnergy*LocalEnergy;
         MeanLocalEnergy += LocalEnergy;
@@ -140,7 +175,7 @@ void QuantumDot::applyVMCstandard(int MCSamples){
     cout << "Variance " << (Energy2 - Energy*Energy)/MCSamples << endl;
     cout << "Accept " << accept/2 << endl;
     cout << "MCcounter " << MC_counter << endl;
-    writeVectorToFile(ResultsFile);
+    //writeVectorToFile(ResultsFile);
 }
 
 double QuantumDot::calculateGreenFunctionRatio(size_t j){
@@ -204,6 +239,10 @@ double QuantumDot::calculateLocalEnergy(){
         double R12beta = (1.0 + R12*beta);
         double R12beta2 = R12beta*R12beta;
         double LocalEnergyWithoutCoulomb = -0.5*(m_alphaomega2*R2 - 4.0*m_alphaomega - 2.0*m_a*m_alphaomega*R12/R12beta2 + (2.0*m_a/R12beta2)*(m_a/R12beta2 + 1.0/R12 - 2.0*beta/R12beta)) + 0.5*m_homega2*R2;
+        if (m_InsideSteepestDescent == true){
+            m_LocalEnergyWFDerivativeAlpha = -0.5*homega*R2;
+            m_LocalEnergyWFDerivativeBeta = -m_a*R12*R12/R12beta2;
+        }
         if (m_Coulomb == 0){
             return LocalEnergyWithoutCoulomb;
         } else {
@@ -302,25 +341,47 @@ void QuantumDot::writeVectorToFile(string ResultsFile){
     ofile.close();
 }
 
+void QuantumDot::resetSteepestDescentHelpVars(){
+    m_ExpectationLocalEnergyDerivativeAlphaSecondTerm = 0.0;
+    m_ExpectationLocalEnergyDerivativeBetaSecondTerm = 0.0;
+    m_ExpectationLocalEnergyDerivativeAlphaFirstTerm = 0.0;
+    m_ExpectationLocalEnergyDerivativeBetaFirstTerm = 0.0;
+    m_LocalEnergyWFDerivativeAlpha = 0.0;
+    m_LocalEnergyWFDerivativeBeta = 0.0;
+    m_MeanLocalEnergyWFDerivativeAlpha = 0.0;
+    m_MeanLocalEnergyWFDerivativeBeta = 0.0;
+    m_ExpectationLocalEnergyDerivativeAlpha = 0.0;
+    m_ExpectationLocalEnergyDerivativeBeta = 0.0;
+}
+
+
 void QuantumDot::applySteepestDescent(int MonteCarloSamplesVariational,
                                       int MaxSteepestDescentIterations,
                                       double SteepestDescentStep,
                                       double tolerance){
-    vec3 VarParametersOld(alpha, beta, 0.0);
+    vec3 VarParametersOld;
     vec3 VarParametersNew;
     vec3 LocalEnergyExpectDerivative;
     m_InsideSteepestDescent = true;
-/*    int i = 0;
+    int i = 0;
     double Diff = 0.1;
-    while (i <= MaxSteepestDescentIterations || Diff < tolerance ){
+    VarParametersOld.set(alpha, beta, 0.0);
+    while (i < MaxSteepestDescentIterations || Diff < tolerance ){
         applyVMC(MonteCarloSamplesVariational);
-        LocalEnergyExpectDerivative(ELalpha, ELbeta, 0.0);
-        LocalEnergyExpectDerivative *= SteepestDescentStep;
-        VarParametersNew = VarParametersOld - LocalEnergyExpectDerivative;
+        LocalEnergyExpectDerivative.set(m_ExpectationLocalEnergyDerivativeAlpha, m_ExpectationLocalEnergyDerivativeBeta, 0.0);
+        LocalEnergyExpectDerivative.print();
+        VarParametersNew = VarParametersOld - LocalEnergyExpectDerivative*SteepestDescentStep;
         setVariationalParameters(VarParametersNew[0], VarParametersNew[1]);
+        VarParametersOld.set(VarParametersNew[0], VarParametersNew[1],0.0);
+        VarParametersOld.print();
+        VarParametersNew.print();
+        resetSteepestDescentHelpVars();
         i++;
+        cout << "Steepest Descent iteration # " << i << endl;
+        cout << "=================================" << endl;
+
     }
     m_InsideSteepestDescent = false;
-*/
+
 }
 
