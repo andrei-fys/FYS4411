@@ -4,7 +4,8 @@
 #include <vector>
 #include "particle.h"
 #include <random>
-#include "quantumforce.h"
+#include "vec3.h"
+//#include "quantumforce.h"
 
 class QuantumDot
 {
@@ -31,6 +32,8 @@ private:
     std::vector<Particle*> m_particles;
     std::vector<QuantumState> m_shells;
     std::vector<double> m_localEnergy;
+    vec3 m_QForceOld;
+    vec3 m_QForceNew;
     void initialize(int);
     int m_sm = -1;
     const double m_s = 0.5;
@@ -65,6 +68,9 @@ private:
     void writeLocalEnergyToFile(double, string);
     void writeVectorToFile(string);
     void resetSteepestDescentHelpVars();
+    void calculateQuantumForce(size_t);
+    void calculateQuantumForceNew(size_t);
+
 
 
     //double calculateKineticEnergyNumerical();

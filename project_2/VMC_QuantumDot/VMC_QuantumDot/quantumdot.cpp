@@ -1,5 +1,5 @@
 #include "quantumdot.h"
-#include "quantumforce.h"
+//#include "quantumforce.h"
 #include <iostream>
 #include <cmath>
 #include <iomanip>  //on Mac setprecision
@@ -70,18 +70,20 @@ void QuantumDot::applyVMC(int MCSamples){
                 }
             }
 
-            QuantumForce QForce(alpha, homega);
-            double QForceOld = QForce.evaluate(particle->position[0],particle->position[1],
-                    particlemove->position[0],particlemove->position[1]);
-            double addition1 =  GaussianBlur(gen)*sqrt(dt) +QForceOld*dt*D;
-            double addition2 =  GaussianBlur(gen)*sqrt(dt) +QForceOld*dt*D;
+            //QuantumForce QForce(alpha, homega);
+            //double QForceOld = QForce.evaluate(particle->position[0],particle->position[1],
+            //        particlemove->position[0],particlemove->position[1]);
+            calculateQuantumForce(j);
+            double additionX =  GaussianBlur(gen)*sqrt(dt) +m_QForceOld[0]*dt*D;
+            double additionY =  GaussianBlur(gen)*sqrt(dt) +m_QForceOld[1]*dt*D;
 
-            double X_new = particle->position.x() + addition1;
-            double Y_new = particle->position.y() + addition2;
+            double X_new = particle->position.x() + additionX;
+            double Y_new = particle->position.y() + additionY;
 
 
             particle->positionNew.setX(X_new);
             particle->positionNew.setY(Y_new);
+            calculateQuantumForceNew(j);
             //start of Metropolis-Hasting´s
             double Rold2 = particle->position.lengthSquared();
             double Rnew2 = particle->positionNew.lengthSquared();
@@ -120,10 +122,10 @@ void QuantumDot::applyVMC(int MCSamples){
     }
     //m_Energy = Energy;
     cout << "Energy "  << Energy << endl;
-    cout << "Energy2 " << Energy2 << endl;
+    //cout << "Energy2 " << Energy2 << endl;
     cout << "Variance " << (Energy2 - Energy*Energy)/MCSamples << endl;
     cout << "Accept " << ((double)accept/(double)(2.0*MCSamples))*100.0 << endl;
-    cout << "MCcounter " << MC_counter << endl;
+    //cout << "MCcounter " << MC_counter << endl;
     //writeVectorToFile(ResultsFile);
 }
 
@@ -178,26 +180,64 @@ void QuantumDot::applyVMCstandard(int MCSamples){
     //writeVectorToFile(ResultsFile);
 }
 
-double QuantumDot::calculateGreenFunctionRatio(size_t j){
-    double QForceOld;
-    double QForceNew;
-    double LengthOld = 0;
-    double LengthNew = 0;
-    QuantumForce QForce(alpha, homega);
+void QuantumDot::calculateQuantumForce(size_t j){
+    vec3 RelativeDistance;
+    double Fx = 0.0;
+    double Fy = 0.0;
+    double x2, y2;
+    Particle *moving_particle = m_particles[j];
     for(size_t i=0; i< m_particles.size() ; i++) {
         Particle *particle = m_particles[i];
-        Particle *moving_particle = m_particles[j];
         if (i != j){
-            QForceNew = QForce.evaluate(particle->position[0],particle->position[1],
-                    moving_particle->positionNew[0],moving_particle->positionNew[1]);
-            QForceOld = QForce.evaluate(particle->position[0],particle->position[1],
-                          moving_particle->position[0],moving_particle->position[1]);
-            LengthOld = moving_particle->position.length();
-            LengthNew = moving_particle->positionNew.length();
+            RelativeDistance = particle->position - moving_particle->position;
+            x2 = particle->position[0];
+            y2 = particle->position[1];
         }
     }
-    double GreenPart = (0.25*D*dt*(QForceOld*QForceOld - QForceNew*QForceNew)) + 0.5*(LengthOld - LengthNew)*(QForceOld + QForceNew);
-    return exp(GreenPart);
+    double R12 = RelativeDistance.length();
+    double R12beta = (R12 + beta);
+    double R12beta2 = 2.0*m_a/(R12beta*R12beta*R12);
+
+    Fx = R12beta2*(moving_particle->position[0] - x2) - 2.0*m_alphaomega*moving_particle->position[0];
+    Fy = R12beta2*(moving_particle->position[1] - y2) - 2.0*m_alphaomega*moving_particle->position[1];
+
+    m_QForceOld.setX(Fx);
+    m_QForceOld.setY(Fy);
+
+}
+
+void QuantumDot::calculateQuantumForceNew(size_t j){
+    vec3 RelativeDistance;
+    double x2, y2;
+    Particle *moving_particle = m_particles[j];
+    for(size_t i=0; i< m_particles.size() ; i++) {
+        Particle *particle = m_particles[i];
+        if (i != j){
+            RelativeDistance = particle->position - moving_particle->positionNew;
+            x2 = particle->position[0];
+            y2 = particle->position[1];
+        }
+    }
+    double R12 = RelativeDistance.length();
+    double R12beta = (R12 + beta);
+    double R12beta2 = 2.0*m_a/(R12beta*R12beta*R12);
+
+    double Fx = R12beta2*(moving_particle->positionNew[0] - x2) - 2.0*m_alphaomega*moving_particle->positionNew[0];
+    double Fy = R12beta2*(moving_particle->positionNew[1] - y2) - 2.0*m_alphaomega*moving_particle->positionNew[1];
+
+    m_QForceNew.setX(Fx);
+    m_QForceNew.setY(Fy);
+
+}
+
+
+double QuantumDot::calculateGreenFunctionRatio(size_t j){
+    Particle *particle = m_particles[j];
+    vec3 QForceDiff;
+    QForceDiff = m_QForceOld - m_QForceNew;
+    double GreenFun = D*dt*0.25*QForceDiff.lengthSquared() + (particle->position[0] - particle->positionNew[0])*(m_QForceOld[0] - m_QForceNew[0])*0.5 +
+    (particle->position[1] - particle->positionNew[1])*(m_QForceOld[1] - m_QForceNew[1])*0.5;
+    return exp(GreenFun);
 }
 
 double QuantumDot::calculateJastrowRatio(size_t j){
@@ -369,12 +409,9 @@ void QuantumDot::applySteepestDescent(int MonteCarloSamplesVariational,
     while (i < MaxSteepestDescentIterations || Diff < tolerance ){
         applyVMC(MonteCarloSamplesVariational);
         LocalEnergyExpectDerivative.set(m_ExpectationLocalEnergyDerivativeAlpha, m_ExpectationLocalEnergyDerivativeBeta, 0.0);
-        LocalEnergyExpectDerivative.print();
         VarParametersNew = VarParametersOld - LocalEnergyExpectDerivative*SteepestDescentStep;
         setVariationalParameters(VarParametersNew[0], VarParametersNew[1]);
         VarParametersOld.set(VarParametersNew[0], VarParametersNew[1],0.0);
-        VarParametersOld.print();
-        VarParametersNew.print();
         resetSteepestDescentHelpVars();
         i++;
         cout << "Steepest Descent iteration # " << i << endl;

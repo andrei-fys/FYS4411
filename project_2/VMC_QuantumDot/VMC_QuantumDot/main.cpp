@@ -12,10 +12,10 @@ int main(int numberOfArguments, char **argumentList)
     int MonteCarloSamples = 8388608; //2^23
     int MonteCarloSamplesVariational = 1000000;
     double tolerance = 10e-7;
-    int MaxSteepestDescentIterations = 50;
-    double SteepestDescentStep = 0.3;
-    double alpha = 0.98;
-    double beta = 0.4;
+    int MaxSteepestDescentIterations = 500;
+    double SteepestDescentStep = 0.01;
+    double alpha = 0.982;
+    double beta = 0.410;
 
 
     // If a first argument is provided, it is the number of electrons
@@ -38,7 +38,7 @@ int main(int numberOfArguments, char **argumentList)
 
 */
 
-/*    QuantumDot qdot(HOStrenth, NumberOfElectrons);
+    QuantumDot qdot(HOStrenth, NumberOfElectrons);
     qdot.setCoulombInterraction(1); // 0 - to turn off Coulomb interraction
     qdot.setJastrowFactor(1);       // 0 - to turn off correlations
     qdot.setSpinParameter(1);       // 1 - antiparallel, 1/3 - parallel
@@ -51,11 +51,21 @@ int main(int numberOfArguments, char **argumentList)
 
     qdot.applyVMC(MonteCarloSamples);
     cout << "=================================" << endl;
+
+/*
+    alpha 0.986561
+    beta 0.415157
+    Energy 3.00833
+    Variance 8.63128e-11
+    Accept 98.4854
 */
+
+/*
     QuantumDot qdot(HOStrenth, NumberOfElectrons);
     qdot.setCoulombInterraction(1); // 0 - to turn off Coulomb interraction
     qdot.setJastrowFactor(1);       // 0 - to turn off correlations
     qdot.setSpinParameter(1);       // 1 - antiparallel, 1/3 - parallel
     qdot.setVariationalParameters(alpha, beta);
     qdot.applyVMCstandard(MonteCarloSamples);
+*/
 }
