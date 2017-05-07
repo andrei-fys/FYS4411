@@ -4,6 +4,7 @@
 #include <cmath>
 #include <iomanip>  //on Mac setprecision
 #include <fstream>
+//#include "mpi.h"
 
 using namespace std;
 
@@ -47,10 +48,18 @@ void QuantumDot::initialize(int ParticlesNumber){
     }
 }
 
-void QuantumDot::applyVMC(int MCSamples){
+/*void QuantumDot::applyVMCMPI(int MCSamples){
+    int numprocs, my_rank;
+    numprocs = 8;
+    //MPI Part
+    MPI_Init (NULL, NULL);
+    MPI_Comm_size (MPI_COMM_WORLD, &numprocs);
+    MPI_Comm_rank (MPI_COMM_WORLD, &my_rank);
+    //MPI Part
     string ResultsFile = "VMC_ImpSampl";
     random_device rd;
     mt19937_64 gen(rd());
+    gen.discard(700000);
     uniform_real_distribution<double> RandomNumberGenerator(0.0,1.0);
     normal_distribution<double> GaussianBlur(0.0, 1.0);
     m_localEnergy.clear();
@@ -58,8 +67,109 @@ void QuantumDot::applyVMC(int MCSamples){
     double MeanLocalEnergySquared = 0;
     double MeanLocalEnergy = 0;
     int accept=0;
-    cout << "alpha "  << alpha << endl;
-    cout << "beta " << beta << endl;
+    //cout << "alpha "  << alpha << endl;
+    //cout << "beta " << beta << endl;
+    for(int i=0; i<MCSamples; i++){
+        for(size_t j=0; j< m_particles.size() ; j++) {
+            Particle *particle = m_particles[j];
+            Particle *particlemove;
+            for(size_t k=0; k< m_particles.size() ; k++) {
+                if (k != j){
+                    particlemove = m_particles[k];
+                }
+            }
+
+            //QuantumForce QForce(alpha, homega);
+            //double QForceOld = QForce.evaluate(particle->position[0],particle->position[1],
+            //        particlemove->position[0],particlemove->position[1]);
+            calculateQuantumForce(j);
+            double additionX =  GaussianBlur(gen)*sqrt(dt) +m_QForceOld[0]*dt*D;
+            double additionY =  GaussianBlur(gen)*sqrt(dt) +m_QForceOld[1]*dt*D;
+
+            double X_new = particle->position.x() + additionX;
+            double Y_new = particle->position.y() + additionY;
+
+
+            particle->positionNew.setX(X_new);
+            particle->positionNew.setY(Y_new);
+            calculateQuantumForceNew(j);
+            //start of Metropolis-Hasting´s
+            double Rold2 = particle->position.lengthSquared();
+            double Rnew2 = particle->positionNew.lengthSquared();
+            double w = exp(alpha*homega*(Rold2 - Rnew2))*calculateJastrowRatio(j);
+            w *= calculateGreenFunctionRatio(j);
+            double r = RandomNumberGenerator(gen);
+            if (w >= r) {
+               particle->position.setX(X_new);
+               particle->position.setY(Y_new);
+               accept++;
+            }
+        }
+        MC_counter++;
+        double LocalEnergy = calculateLocalEnergy();
+        if (m_InsideSteepestDescent = true){
+            m_MeanLocalEnergyWFDerivativeAlpha += m_LocalEnergyWFDerivativeAlpha;
+            m_MeanLocalEnergyWFDerivativeBeta += m_LocalEnergyWFDerivativeBeta;
+            m_ExpectationLocalEnergyDerivativeAlphaFirstTerm += m_LocalEnergyWFDerivativeAlpha*LocalEnergy;
+            m_ExpectationLocalEnergyDerivativeBetaFirstTerm += m_LocalEnergyWFDerivativeBeta*LocalEnergy;
+        }
+        //writeLocalEnergyToFile(LocalEnergy, ResultsFile);
+        //m_localEnergy.push_back(LocalEnergy);
+        MeanLocalEnergySquared += LocalEnergy*LocalEnergy;
+        MeanLocalEnergy += LocalEnergy;
+
+    }
+    double Energy =  (double)MeanLocalEnergy/MCSamples;
+    double Energy2 = (double)MeanLocalEnergySquared/MCSamples;
+    double accept_slave = ((double)accept/(double)(2.0*MCSamples))*100.0;
+    double variance_slave = (Energy2 - Energy*Energy)/MCSamples;
+    if (m_InsideSteepestDescent = true){
+        m_ExpectationLocalEnergyDerivativeAlphaSecondTerm = Energy*((double)m_MeanLocalEnergyWFDerivativeAlpha/MCSamples);
+        m_ExpectationLocalEnergyDerivativeBetaSecondTerm = Energy*((double)m_MeanLocalEnergyWFDerivativeBeta/MCSamples);
+        m_ExpectationLocalEnergyDerivativeAlphaFirstTerm /= (double)MCSamples;
+        m_ExpectationLocalEnergyDerivativeBetaFirstTerm /= (double)MCSamples;
+        m_ExpectationLocalEnergyDerivativeAlpha = 2.0*(m_ExpectationLocalEnergyDerivativeAlphaFirstTerm-m_ExpectationLocalEnergyDerivativeAlphaSecondTerm);
+        m_ExpectationLocalEnergyDerivativeBeta = 2.0*(m_ExpectationLocalEnergyDerivativeBetaFirstTerm-m_ExpectationLocalEnergyDerivativeBetaSecondTerm);
+    }
+    //m_Energy = Energy;
+    // ** cout << "Energy "  << Energy << endl;
+    //cout << "Energy2 " << Energy2 << endl;
+    //cout << "Variance " << (Energy2 - Energy*Energy)/MCSamples << endl;
+    // ** cout << "Accept " << ((double)accept/(double)(2.0*MCSamples))*100.0 << endl;
+    //cout << "MCcounter " << MC_counter << endl;
+    //writeVectorToFile(ResultsFile);
+    double master_Energy = 0.0;
+    double accept_master = 0.0;
+    double variance_master = 0.0;
+    MPI_Reduce(&Energy, &master_Energy, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+    MPI_Reduce(&accept_slave, &accept_master, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+    MPI_Reduce(&variance_slave, &variance_master, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+    if (my_rank == 0){
+        cout << "alpha "  << alpha << endl;
+        cout << "beta " << beta << endl;
+        cout << "Energy " << (double) master_Energy/numprocs << endl;
+        cout << "Variance " << (double) variance_master/numprocs << endl;
+        cout << "Accept % :" << (double) accept_master/numprocs << endl;
+        cout << "Total number of MC samples " << MCSamples*numprocs << endl;
+
+    }
+    MPI_Finalize();
+}
+*/
+void QuantumDot::applyVMC(int MCSamples){
+    string ResultsFile = "VMC_ImpSampl";
+    random_device rd;
+    mt19937_64 gen(rd());
+    gen.discard(700000);
+    uniform_real_distribution<double> RandomNumberGenerator(0.0,1.0);
+    normal_distribution<double> GaussianBlur(0.0, 1.0);
+    m_localEnergy.clear();
+    int MC_counter = 0;
+    double MeanLocalEnergySquared = 0;
+    double MeanLocalEnergy = 0;
+    int accept=0;
+    //cout << "alpha "  << alpha << endl;
+    //cout << "beta " << beta << endl;
     for(int i=0; i<MCSamples; i++){
         for(size_t j=0; j< m_particles.size() ; j++) {
             Particle *particle = m_particles[j];
@@ -121,11 +231,13 @@ void QuantumDot::applyVMC(int MCSamples){
         m_ExpectationLocalEnergyDerivativeBeta = 2.0*(m_ExpectationLocalEnergyDerivativeBetaFirstTerm-m_ExpectationLocalEnergyDerivativeBetaSecondTerm);
     }
     //m_Energy = Energy;
+    cout << "Alpha "  << alpha << endl;
+    cout << "Beta "  << beta << endl;
     cout << "Energy "  << Energy << endl;
     //cout << "Energy2 " << Energy2 << endl;
     cout << "Variance " << (Energy2 - Energy*Energy)/MCSamples << endl;
     cout << "Accept " << ((double)accept/(double)(2.0*MCSamples))*100.0 << endl;
-    //cout << "MCcounter " << MC_counter << endl;
+    cout << "MCcounter " << MC_counter << endl;
     //writeVectorToFile(ResultsFile);
 }
 
@@ -420,5 +532,10 @@ void QuantumDot::applySteepestDescent(int MonteCarloSamplesVariational,
     }
     m_InsideSteepestDescent = false;
 
+}
+
+void QuantumDot::setMPIenv(int argc, char **argv){
+    m_argc = argc ;
+    m_argv = argv;
 }
 

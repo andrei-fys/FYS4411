@@ -20,6 +20,7 @@ public:
     void getQuantumDotStatesNumber();
     void getQuantumDotParticlesCoordinates();
     void applyVMC(int);
+    //void applyVMCMPI(int);
     void applyVMCstandard(int);
     double Alpha() { return alpha; }
     double Beta() { return beta; }
@@ -27,6 +28,7 @@ public:
     void setJastrowFactor(int);
     void setSpinParameter(int);
     void applySteepestDescent(int, int, double, double);
+    void setMPIenv(int, char**);
 
 private:
     std::vector<Particle*> m_particles;
@@ -46,6 +48,9 @@ private:
     double m_alphaomega;
     double m_alphaomega2;
     double m_a;
+    int m_argc;
+    char argv;
+    char** m_argv;
     //double m_Energy;
     //SteepestDescent variables
     bool m_InsideSteepestDescent;
