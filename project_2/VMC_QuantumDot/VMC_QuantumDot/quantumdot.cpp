@@ -347,8 +347,8 @@ double QuantumDot::calculateGreenFunctionRatio(size_t j){
     Particle *particle = m_particles[j];
     vec3 QForceDiff;
     QForceDiff = m_QForceOld - m_QForceNew;
-    double GreenFun = D*dt*0.25*QForceDiff.lengthSquared() + (particle->position[0] - particle->positionNew[0])*(m_QForceOld[0] - m_QForceNew[0])*0.5 +
-    (particle->position[1] - particle->positionNew[1])*(m_QForceOld[1] - m_QForceNew[1])*0.5;
+    double GreenFun = D*dt*0.25*QForceDiff.lengthSquared() + (particle->position[0] - particle->positionNew[0])*(m_QForceOld[0] + m_QForceNew[0])*0.5 +
+    (particle->position[1] - particle->positionNew[1])*(m_QForceOld[1] + m_QForceNew[1])*0.5;
     return exp(GreenFun);
 }
 

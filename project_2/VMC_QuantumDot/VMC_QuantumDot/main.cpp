@@ -12,15 +12,15 @@ int main(int numberOfArguments, char **argumentList)
     g_argv = argumentList;
 
     int NumberOfElectrons = 2;
-    double HOStrenth = 0.5;
-    int MonteCarloSamples = 100000000;
+    double HOStrenth = 1.0;
+    int MonteCarloSamples = 1000000;
     //int MonteCarloSamples = 8388608; //2^23
     int MonteCarloSamplesVariational = 1000000;
     double tolerance = 10e-7;
     int MaxSteepestDescentIterations = 20;
     double SteepestDescentStep = 0.05;
-    double alpha = 0.989428;
-    double beta = 0.309102;
+    double alpha = 1.0;
+    double beta = 0.4;
 
 
     // If a first argument is provided, it is the number of electrons
@@ -49,12 +49,13 @@ int main(int numberOfArguments, char **argumentList)
     qdot.setSpinParameter(1);       // 1 - antiparallel, 1/3 - parallel
     qdot.setVariationalParameters(alpha, beta);
 
-    qdot.applySteepestDescent(MonteCarloSamplesVariational,
+    /*qdot.applySteepestDescent(MonteCarloSamplesVariational,
                               MaxSteepestDescentIterations,
                               SteepestDescentStep,
                               tolerance);
-
+*/
     qdot.applyVMC(MonteCarloSamples);
+    //qdot.applyVMCstandard(MonteCarloSamples);
     cout << "=================================" << endl;
 
 
