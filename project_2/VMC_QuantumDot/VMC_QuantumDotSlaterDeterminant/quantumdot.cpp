@@ -26,6 +26,11 @@ QuantumDot::QuantumDot(double h_omega, int ParticlesNumber){
     FirstDerivRefArrayY[1] = &QuantumDot::Fi1DerivativeY;
     FirstDerivRefArrayY[2] = &QuantumDot::Fi2DerivativeY;
     FirstDerivRefArrayY[3] = &QuantumDot::Fi3DerivativeY;
+    SecondDerivRefArray[0] = &QuantumDot::Fi0Derivative2;
+    SecondDerivRefArray[1] = &QuantumDot::Fi1Derivative2;
+    SecondDerivRefArray[2] = &QuantumDot::Fi2Derivative2;
+    SecondDerivRefArray[3] = &QuantumDot::Fi3Derivative2;
+
 }
 
 void QuantumDot::setUpCoordinatesCartesian(int ParticlesNumber){
