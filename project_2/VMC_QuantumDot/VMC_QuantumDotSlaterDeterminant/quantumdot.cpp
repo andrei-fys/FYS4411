@@ -428,71 +428,20 @@ double QuantumDot::calculateLocalEnergy(){
             CoulombPotentialEnergy += 1.0/(particle_i->position - particle_j->position).length();
         }
     }
-    return -0.5*(m_LaplasianSD + m_LaplasianJastrow + 2.0*m_DotProdGradientJastrowAndSD) + HOPotentialEnergy; //+ CoulombPotentialEnergy;
+    return -0.5*(m_LaplasianSD + m_LaplasianJastrow + 2.0*m_DotProdGradientJastrowAndSD) + HOPotentialEnergy + CoulombPotentialEnergy;
 }
 
 
 void QuantumDot::calculateDotProdGradientJastrowAndSD(){
-    //first term
+    m_DotProdGradientJastrowAndSD = 0.0;
     vec3 JastrowFactorGradient;
     vec3 RelativeDistance;
-    vec3 gradientJastrowAllParticles;
-    for (size_t i=0; i<m_particles.size(); i++) {
-        Particle *particle_i = m_particles[i];
-        double abetaterm = 0.0;
-
-        double firstsumX = 0.0;
-        double firstsumY = 0.0;
-        double secondsumX = 0.0;
-        double secondsumY = 0.0;
-        for(size_t k=0; k<i ; k++) {
-            Particle *particle_k = m_particles[k];
-            RelativeDistance = particle_k->position - particle_i->position;
-            if (particle_i->spin != particle_k->spin) {
-                abetaterm = 1.0/((1.0 + beta*RelativeDistance.length())*(1.0 + beta*RelativeDistance.length()));
-            } else {
-                abetaterm = 1.0/3.0*((1.0 + beta*RelativeDistance.length())*(1.0 + beta*RelativeDistance.length()));
-                //cout << "abetaterm " << abetaterm << endl;
-            }
-            double reldistfirstX = (particle_i->position.x() - particle_k->position.x())/RelativeDistance.length();
-            double reldistfirstY = (particle_i->position.y() - particle_k->position.y())/RelativeDistance.length();
-            firstsumX += reldistfirstX*abetaterm;
-            firstsumY += reldistfirstY*abetaterm;
-        }
-
-        abetaterm = 0.0;
-        for(size_t k=i+1; k< m_particles.size() ; k++) {
-            Particle *particle_k = m_particles[k];
-            RelativeDistance = particle_k->position - particle_i->position;
-            if (particle_i->spin != particle_k->spin) {
-                abetaterm = 1.0/((1.0 + beta*RelativeDistance.length())*(1.0 + beta*RelativeDistance.length()));
-            } else {
-                abetaterm = 1.0/3.0*((1.0 + beta*RelativeDistance.length())*(1.0 + beta*RelativeDistance.length()));
-            }
-            double reldistfirstX = (particle_k->position.x() - particle_i->position.x())/RelativeDistance.length();
-            double reldistfirstY = (particle_k->position.y() - particle_i->position.y())/RelativeDistance.length();
-            secondsumX += reldistfirstX*abetaterm;
-            secondsumY += reldistfirstY*abetaterm;
-
-        }
-    //cout << "X " <<firstsumX << " - " << secondsumX << endl;
-    //cout << "Y " <<firstsumY << " - " << secondsumY << endl;
-
-    JastrowFactorGradient.setX(firstsumX - secondsumX);
-    JastrowFactorGradient.setY(firstsumY - secondsumY);
-    JastrowFactorGradient.print();
-    gradientJastrowAllParticles[0] += JastrowFactorGradient.x();
-    gradientJastrowAllParticles[1] += JastrowFactorGradient.y();
-    }
-    //gradientJastrowAllParticles.print();
-    //end - first term
-    //second term
     vec3 SDGradient;
-    vec3 gradientSDAllParticles;
     QuantumDot::FirstDerivativeArray GradientX;
     QuantumDot::FirstDerivativeArray GradientY;
     for (size_t i=0; i<m_particles.size(); i++) {
         Particle *particle_i = m_particles[i];
+
         double SummGradX = 0.0;
         double SummGradY = 0.0;
         double exponent = exp(-0.5*m_alphaomega*particle_i->position.lengthSquared());
@@ -507,11 +456,47 @@ void QuantumDot::calculateDotProdGradientJastrowAndSD(){
                 SummGradY += m_SD_up_inverse(j,i)*GradientY(particle_i->position.x(), particle_i->position.y(), exponent, m_alphaomega, m_sqrtomega );
             }
         }
+
         SDGradient.setX(SummGradX);
         SDGradient.setY(SummGradY);
-        gradientSDAllParticles += SDGradient;
+
+        double abetaterm = 0.0;
+        double firstsumX = 0.0;
+        double firstsumY = 0.0;
+        for(size_t k=0; k<i ; k++) {
+            Particle *particle_k = m_particles[k];
+            RelativeDistance = particle_k->position - particle_i->position;
+            if (particle_i->spin != particle_k->spin) {
+                abetaterm = 1.0/((1.0 + beta*RelativeDistance.length())*(1.0 + beta*RelativeDistance.length()));
+            } else {
+                abetaterm = 1.0/(3.0*(1.0 + beta*RelativeDistance.length())*(1.0 + beta*RelativeDistance.length()));
+            }
+            double reldistfirstX = (particle_i->position.x() - particle_k->position.x())/RelativeDistance.length();
+            double reldistfirstY = (particle_i->position.y() - particle_k->position.y())/RelativeDistance.length();
+            firstsumX += reldistfirstX*abetaterm;
+            firstsumY += reldistfirstY*abetaterm;
+        }
+        abetaterm = 0.0;
+        double secondsumX = 0.0;
+        double secondsumY = 0.0;
+        for(size_t k=i+1; k< m_particles.size() ; k++) {
+            Particle *particle_k = m_particles[k];
+            RelativeDistance = particle_k->position - particle_i->position;
+            if (particle_i->spin != particle_k->spin) {
+                abetaterm = 1.0/((1.0 + beta*RelativeDistance.length())*(1.0 + beta*RelativeDistance.length()));
+            } else {
+                abetaterm = 1.0/(3.0*(1.0 + beta*RelativeDistance.length())*(1.0 + beta*RelativeDistance.length()));
+            }
+            double reldistfirstX = (particle_k->position.x() - particle_i->position.x())/RelativeDistance.length();
+            double reldistfirstY = (particle_k->position.y() - particle_i->position.y())/RelativeDistance.length();
+            secondsumX += reldistfirstX*abetaterm;
+            secondsumY += reldistfirstY*abetaterm;
+        }
+        JastrowFactorGradient.setX(firstsumX - secondsumX);
+        JastrowFactorGradient.setY(firstsumY - secondsumY);
+        m_DotProdGradientJastrowAndSD += (SDGradient[0]*JastrowFactorGradient[0] + SDGradient[1]*JastrowFactorGradient[1]);
     }
-    m_DotProdGradientJastrowAndSD=gradientSDAllParticles[0]*gradientJastrowAllParticles[0] + gradientSDAllParticles[1]*gradientJastrowAllParticles[1];
+
 }
 
 void QuantumDot::calculateLaplasianJastrow(){
