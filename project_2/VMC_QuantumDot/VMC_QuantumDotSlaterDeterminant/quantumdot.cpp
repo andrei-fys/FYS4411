@@ -209,15 +209,11 @@ void QuantumDot::calculateQuantumForceNew(size_t i){
         GradientX = getGradientX(j);
         GradientY = getGradientY(j);
         if (moving_particle->spin != 1) {
-            //SummGradX += m_SD_down_inverse(j,i-m_shells.size())*GradientX(moving_particle->positionNew.x(), moving_particle->positionNew.y(), exponent, m_alphaomega, m_sqrtomega);
-            //SummGradY += m_SD_down_inverse(j,i-m_shells.size())*GradientY(moving_particle->positionNew.x(), moving_particle->positionNew.y(), exponent, m_alphaomega, m_sqrtomega );
-            SummGradX += GradientX(moving_particle->positionNew.x(), moving_particle->positionNew.y(), exponent, m_alphaomega, m_sqrtomega);
-            SummGradY += GradientY(moving_particle->positionNew.x(), moving_particle->positionNew.y(), exponent, m_alphaomega, m_sqrtomega );
+            SummGradX += m_SD_down_inverse(j,i-m_shells.size())*GradientX(moving_particle->positionNew.x(), moving_particle->positionNew.y(), exponent, m_alphaomega, m_sqrtomega);
+            SummGradY += m_SD_down_inverse(j,i-m_shells.size())*GradientY(moving_particle->positionNew.x(), moving_particle->positionNew.y(), exponent, m_alphaomega, m_sqrtomega );
         } else {
-            //SummGradX += m_SD_up_inverse(j,i)*GradientX(moving_particle->positionNew.x(), moving_particle->positionNew.y(), exponent, m_alphaomega, m_sqrtomega);
-            //SummGradY += m_SD_up_inverse(j,i)*GradientY(moving_particle->positionNew.x(), moving_particle->positionNew.y(), exponent, m_alphaomega, m_sqrtomega );
-            SummGradX += GradientX(moving_particle->positionNew.x(), moving_particle->positionNew.y(), exponent, m_alphaomega, m_sqrtomega);
-            SummGradY += GradientY(moving_particle->positionNew.x(), moving_particle->positionNew.y(), exponent, m_alphaomega, m_sqrtomega );
+            SummGradX += m_SD_up_inverse(j,i)*GradientX(moving_particle->positionNew.x(), moving_particle->positionNew.y(), exponent, m_alphaomega, m_sqrtomega);
+            SummGradY += m_SD_up_inverse(j,i)*GradientY(moving_particle->positionNew.x(), moving_particle->positionNew.y(), exponent, m_alphaomega, m_sqrtomega );
         }
 
     }
@@ -252,8 +248,6 @@ void QuantumDot::calculateQuantumForceNew(size_t i){
         secondsumX += reldistfirstX*abetaterm;
         secondsumY += reldistfirstY*abetaterm;
     }
-    //Fx = (firstsumX - secondsumX)*2.0 +SummGradX*2.0/(m_RSD*m_RJ);
-    //Fy = (firstsumY - secondsumY)*2.0 +SummGradY*2.0/(m_RSD*m_RJ);
     Fx = (firstsumX - secondsumX)*2.0  + SummGradX*2.0/(m_RSD*m_RJ);
     Fy = (firstsumY - secondsumY)*2.0  + SummGradY*2.0/(m_RSD*m_RJ);
     m_QForceNew.setX(Fx);
@@ -446,6 +440,7 @@ void QuantumDot::calculateDotProdGradientJastrowAndSD(){
     for (size_t i=0; i<m_particles.size(); i++) {
         Particle *particle_i = m_particles[i];
         double abetaterm = 0.0;
+
         double firstsumX = 0.0;
         double firstsumY = 0.0;
         double secondsumX = 0.0;
@@ -456,31 +451,40 @@ void QuantumDot::calculateDotProdGradientJastrowAndSD(){
             if (particle_i->spin != particle_k->spin) {
                 abetaterm = 1.0/((1.0 + beta*RelativeDistance.length())*(1.0 + beta*RelativeDistance.length()));
             } else {
-                abetaterm = 1.0/(3.0*(1.0 + beta*RelativeDistance.length())*(1.0 + beta*RelativeDistance.length()));
+                abetaterm = 1.0/3.0*((1.0 + beta*RelativeDistance.length())*(1.0 + beta*RelativeDistance.length()));
+                //cout << "abetaterm " << abetaterm << endl;
             }
             double reldistfirstX = (particle_i->position.x() - particle_k->position.x())/RelativeDistance.length();
             double reldistfirstY = (particle_i->position.y() - particle_k->position.y())/RelativeDistance.length();
             firstsumX += reldistfirstX*abetaterm;
             firstsumY += reldistfirstY*abetaterm;
         }
+
+        abetaterm = 0.0;
         for(size_t k=i+1; k< m_particles.size() ; k++) {
             Particle *particle_k = m_particles[k];
             RelativeDistance = particle_k->position - particle_i->position;
             if (particle_i->spin != particle_k->spin) {
                 abetaterm = 1.0/((1.0 + beta*RelativeDistance.length())*(1.0 + beta*RelativeDistance.length()));
             } else {
-                abetaterm = 1.0/(3.0*(1.0 + beta*RelativeDistance.length())*(1.0 + beta*RelativeDistance.length()));
+                abetaterm = 1.0/3.0*((1.0 + beta*RelativeDistance.length())*(1.0 + beta*RelativeDistance.length()));
             }
             double reldistfirstX = (particle_k->position.x() - particle_i->position.x())/RelativeDistance.length();
             double reldistfirstY = (particle_k->position.y() - particle_i->position.y())/RelativeDistance.length();
             secondsumX += reldistfirstX*abetaterm;
             secondsumY += reldistfirstY*abetaterm;
+
         }
+    //cout << "X " <<firstsumX << " - " << secondsumX << endl;
+    //cout << "Y " <<firstsumY << " - " << secondsumY << endl;
+
     JastrowFactorGradient.setX(firstsumX - secondsumX);
     JastrowFactorGradient.setY(firstsumY - secondsumY);
-
-    gradientJastrowAllParticles += JastrowFactorGradient;
+    JastrowFactorGradient.print();
+    gradientJastrowAllParticles[0] += JastrowFactorGradient.x();
+    gradientJastrowAllParticles[1] += JastrowFactorGradient.y();
     }
+    //gradientJastrowAllParticles.print();
     //end - first term
     //second term
     vec3 SDGradient;
@@ -581,6 +585,9 @@ void QuantumDot::applyVMC(int MCSamples){
     int MC_counter = 0;
     int accept=0;
     double Elocal = 0.0;
+    double E_LaplasianSD = 0.0;
+    double E_LaplasianJastrow = 0.0;
+    double E_DotProdGradientJastrowAndSD = 0.0;
     for(int i=0; i<MCSamples; i++){
         for(size_t j=0; j< m_particles.size() ; j++) {
             Particle *particle = m_particles[j];
@@ -620,6 +627,9 @@ void QuantumDot::applyVMC(int MCSamples){
         }
         MC_counter++;
         Elocal += calculateLocalEnergy();
+        //E_LaplasianSD += m_LaplasianSD*m_LaplasianSD;
+        //E_LaplasianJastrow += m_LaplasianJastrow*m_LaplasianJastrow;
+        //E_DotProdGradientJastrowAndSD += 2.0*m_DotProdGradientJastrowAndSD*2.0*m_DotProdGradientJastrowAndSD;
         //cout << m_LaplasianSD << "   LSD" << endl;
         //cout << m_LaplasianJastrow << "   LJ" << endl;
         //cout << 2.0*m_DotProdGradientJastrowAndSD << "   DotProd" << endl;
@@ -627,6 +637,9 @@ void QuantumDot::applyVMC(int MCSamples){
     }
     cout << "Accept " << ((double)accept/(double)(m_particles.size()*MCSamples))*100.0 << endl;
     cout << "Elocal " << (double) Elocal/MCSamples << endl;
+    //cout << (double) E_LaplasianSD/MCSamples << "   LSD" << endl;
+    //cout << (double) E_LaplasianJastrow/MCSamples << "   LJ" << endl;
+    //cout << (double) E_DotProdGradientJastrowAndSD/(double)MCSamples << "   DotProd" << endl;
 }
 
 
