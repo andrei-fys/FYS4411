@@ -6,7 +6,7 @@ using namespace std;
 int main(int numberOfArguments, char **argumentList)
 {
 
-    int NumberOfElectrons = 6;
+    int NumberOfElectrons = 2;
     double HOStrenth = 1.0;
     int MonteCarloSamples = 1000000;
     double alpha = 1.0;

@@ -202,7 +202,6 @@ void QuantumDot::calculateQuantumForceNew(size_t i){
     Particle *moving_particle = m_particles[i];
     QuantumDot::FirstDerivativeArray GradientX;
     QuantumDot::FirstDerivativeArray GradientY;
-
     double SummGradX = 0.0;
     double SummGradY = 0.0;
     double exponent = exp(-0.5*m_alphaomega*moving_particle->positionNew.lengthSquared());
@@ -210,11 +209,15 @@ void QuantumDot::calculateQuantumForceNew(size_t i){
         GradientX = getGradientX(j);
         GradientY = getGradientY(j);
         if (moving_particle->spin != 1) {
-            SummGradX += m_SD_down_inverse(j,i-m_shells.size())*GradientX(moving_particle->positionNew.x(), moving_particle->positionNew.y(), exponent, m_alphaomega, m_sqrtomega);
-            SummGradY += m_SD_down_inverse(j,i-m_shells.size())*GradientY(moving_particle->positionNew.x(), moving_particle->positionNew.y(), exponent, m_alphaomega, m_sqrtomega );
+            //SummGradX += m_SD_down_inverse(j,i-m_shells.size())*GradientX(moving_particle->positionNew.x(), moving_particle->positionNew.y(), exponent, m_alphaomega, m_sqrtomega);
+            //SummGradY += m_SD_down_inverse(j,i-m_shells.size())*GradientY(moving_particle->positionNew.x(), moving_particle->positionNew.y(), exponent, m_alphaomega, m_sqrtomega );
+            SummGradX += GradientX(moving_particle->positionNew.x(), moving_particle->positionNew.y(), exponent, m_alphaomega, m_sqrtomega);
+            SummGradY += GradientY(moving_particle->positionNew.x(), moving_particle->positionNew.y(), exponent, m_alphaomega, m_sqrtomega );
         } else {
-            SummGradX += m_SD_up_inverse(j,i)*GradientX(moving_particle->positionNew.x(), moving_particle->positionNew.y(), exponent, m_alphaomega, m_sqrtomega);
-            SummGradY += m_SD_up_inverse(j,i)*GradientY(moving_particle->positionNew.x(), moving_particle->positionNew.y(), exponent, m_alphaomega, m_sqrtomega );
+            //SummGradX += m_SD_up_inverse(j,i)*GradientX(moving_particle->positionNew.x(), moving_particle->positionNew.y(), exponent, m_alphaomega, m_sqrtomega);
+            //SummGradY += m_SD_up_inverse(j,i)*GradientY(moving_particle->positionNew.x(), moving_particle->positionNew.y(), exponent, m_alphaomega, m_sqrtomega );
+            SummGradX += GradientX(moving_particle->positionNew.x(), moving_particle->positionNew.y(), exponent, m_alphaomega, m_sqrtomega);
+            SummGradY += GradientY(moving_particle->positionNew.x(), moving_particle->positionNew.y(), exponent, m_alphaomega, m_sqrtomega );
         }
 
     }
@@ -249,8 +252,10 @@ void QuantumDot::calculateQuantumForceNew(size_t i){
         secondsumX += reldistfirstX*abetaterm;
         secondsumY += reldistfirstY*abetaterm;
     }
-    Fx = (firstsumX - secondsumX)*2.0 +SummGradX*2.0/(m_RSD*m_RJ);
-    Fy = (firstsumY - secondsumY)*2.0 +SummGradY*2.0/(m_RSD*m_RJ);
+    //Fx = (firstsumX - secondsumX)*2.0 +SummGradX*2.0/(m_RSD*m_RJ);
+    //Fy = (firstsumY - secondsumY)*2.0 +SummGradY*2.0/(m_RSD*m_RJ);
+    Fx = (firstsumX - secondsumX)*2.0  + SummGradX*2.0/(m_RSD*m_RJ);
+    Fy = (firstsumY - secondsumY)*2.0  + SummGradY*2.0/(m_RSD*m_RJ);
     m_QForceNew.setX(Fx);
     m_QForceNew.setY(Fy);
 }
@@ -259,15 +264,16 @@ double QuantumDot::calculateGreenFunctionRatio(size_t j){
     Particle *particle = m_particles[j];
     vec3 QForceDiff;
     QForceDiff = m_QForceOld - m_QForceNew;
-    double GreenFun = D*dt*0.25*QForceDiff.lengthSquared() + (particle->position[0] - particle->positionNew[0])*(m_QForceOld[0] + m_QForceNew[0])*0.5 +
-    (particle->position[1] - particle->positionNew[1])*(m_QForceOld[1] + m_QForceNew[1])*0.5;
+    //double GreenFun = D*dt*0.25*QForceDiff.lengthSquared() + (particle->position.x() - particle->positionNew.x())*(m_QForceOld.x() + m_QForceNew.x())*0.5 +
+    //(particle->position.y() - particle->positionNew.y())*(m_QForceOld.y() + m_QForceNew.y())*0.5;
+    double GreenFun = 0.0;
+    for (int i=0; i<2; i++){
+        GreenFun += 0.5*(m_QForceOld[i] + m_QForceNew[i])*(D*dt*0.5*(m_QForceOld[i] - m_QForceNew[i]) - particle->positionNew[i] + particle->position[i]);
+    }
     return exp(GreenFun);
 }
 
 double QuantumDot::calculateJastrowRatio(size_t i){
-    if (m_Jastrow == 0) {
-        return 1.0;
-    } else {
         Particle *moving_particle = m_particles[i];
         vec3 RelativeDistance;
         vec3 RelativeDistanceNew;
@@ -310,7 +316,6 @@ double QuantumDot::calculateJastrowRatio(size_t i){
         double RJ = exp(firstterm + secondterm);
         m_RJ = RJ;
         return RJ;
-    }
 }
 
 double QuantumDot::calculateSDRatio(size_t i){
@@ -359,7 +364,7 @@ void QuantumDot::updateSlaterDeterminant(size_t i){
         m_SD_up = tempDeterminant;
     } else {
         m_SD_down = tempDeterminant;
-    }
+    }    
     m_SD_up_inverse = m_SD_up.i();
     m_SD_down_inverse = m_SD_down.i();
 }
@@ -604,8 +609,8 @@ void QuantumDot::applyVMC(int MCSamples){
         for(size_t j=0; j< m_particles.size() ; j++) {
             Particle *particle = m_particles[j];
             calculateQuantumForce(j);
-            particle->positionNew.setX(particle->position.x() + GaussianBlur(gen)*sqrt(dt) +m_QForceOld[0]*dt*D);
-            particle->positionNew.setY(particle->position.y() + GaussianBlur(gen)*sqrt(dt) +m_QForceOld[1]*dt*D);
+            particle->positionNew.setX(particle->position.x() + GaussianBlur(gen)*sqrt(dt) +m_QForceOld.x()*dt*D);
+            particle->positionNew.setY(particle->position.y() + GaussianBlur(gen)*sqrt(dt) +m_QForceOld.y()*dt*D);
             double SDRatio = calculateSDRatio(j);
             //cout << "SD Ratio " << SDRatio << endl;
             double JRatio = calculateJastrowRatio(j);
@@ -614,8 +619,9 @@ void QuantumDot::applyVMC(int MCSamples){
             //cout << "Quantum force "<< m_QForceNew << endl;
             double GRatio = calculateGreenFunctionRatio(j);
             //cout << "Green ratio"<< GRatio << endl;
-            double w = SDRatio*JRatio*GRatio;
+            //double w = SDRatio*JRatio*GRatio;
             //cout << "W          "<< w << endl;
+            double w = SDRatio*JRatio*GRatio;
             double r = RandomNumberGenerator(gen);
             if (w >= r) {
                particle->position.setX(particle->positionNew.x());
@@ -637,11 +643,11 @@ void QuantumDot::applyVMC(int MCSamples){
             }
         }
         MC_counter++;
-        //Elocal += calculateLocalEnergy();
+        Elocal += calculateLocalEnergy();
         //cout << "MC counter " << MC_counter << endl;
     }
     cout << "Accept " << ((double)accept/(double)(m_particles.size()*MCSamples))*100.0 << endl;
-    //cout << "Elocal " << (double) Elocal/MCSamples << endl;
+    cout << "Elocal " << (double) Elocal/MCSamples << endl;
 }
 
 

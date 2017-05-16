@@ -55,11 +55,12 @@ private:
     static double H1(double x) { return 2.0*x; }
     static double H2(double x) { return 4.0*x*x - 2.0; }
     static double H3(double x) { return 8.0*x*x*x -12.0*x; }
-    //gradient of the StateFunction
+    //gradient of the StateFunction X
     static double Fi0DerivativeX(double x, double y, double exponent, double aom, double sqrtom) { return -exponent*x*aom; }
-    static double Fi1DerivativeX(double x, double y, double exponent, double aom, double sqrtom) { return -exponent*2.0*sqrtom*x*y*aom; }
+    static double Fi1DerivativeX(double x, double y, double exponent, double aom, double sqrtom) { return -2.0*exponent*sqrtom*x*y*aom; }
     static double Fi2DerivativeX(double x, double y, double exponent, double aom, double sqrtom) { return 2.0*exponent*sqrtom*(1.0-x*x*aom); }
     static double Fi3DerivativeX(double x, double y, double exponent, double aom, double sqrtom) { return 1; }
+    //gradient of the StateFunction Y
     static double Fi0DerivativeY(double x, double y, double exponent, double aom, double sqrtom) { return -exponent*y*aom; }
     static double Fi1DerivativeY(double x, double y, double exponent, double aom, double sqrtom) { return 2.0*exponent*sqrtom*(1.0-y*y*aom); }
     static double Fi2DerivativeY(double x, double y, double exponent, double aom, double sqrtom) { return -2.0*exponent*sqrtom*x*y*aom; }
