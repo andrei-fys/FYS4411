@@ -434,16 +434,15 @@ double QuantumDot::calculateLocalEnergy(){
             CoulombPotentialEnergy += 1.0/(particle_i->position - particle_j->position).length();
         }
     }
-    return -0.5*(m_LaplasianSD + m_LaplasianJastrow + 2.0*m_DotProdGradientJastrowAndSD) + HOPotentialEnergy + CoulombPotentialEnergy;
+    return -0.5*(m_LaplasianSD + m_LaplasianJastrow + 2.0*m_DotProdGradientJastrowAndSD) + HOPotentialEnergy; //+ CoulombPotentialEnergy;
 }
 
 
 void QuantumDot::calculateDotProdGradientJastrowAndSD(){
-    m_gradientDotProductJastrow = 0.0;
     //first term
-    vector<vec3> JastrowFactorGradientAll;
     vec3 JastrowFactorGradient;
     vec3 RelativeDistance;
+    vec3 gradientJastrowAllParticles;
     for (size_t i=0; i<m_particles.size(); i++) {
         Particle *particle_i = m_particles[i];
         double abetaterm = 0.0;
@@ -476,23 +475,16 @@ void QuantumDot::calculateDotProdGradientJastrowAndSD(){
             double reldistfirstY = (particle_k->position.y() - particle_i->position.y())/RelativeDistance.length();
             secondsumX += reldistfirstX*abetaterm;
             secondsumY += reldistfirstY*abetaterm;
-            JastrowFactorGradient.setX(firstsumX - secondsumX);
-            JastrowFactorGradient.setY(firstsumY - secondsumY);
         }
-    m_gradientDotProductJastrow += JastrowFactorGradient.lengthSquared();
-    JastrowFactorGradientAll.push_back(JastrowFactorGradient);
+    JastrowFactorGradient.setX(firstsumX - secondsumX);
+    JastrowFactorGradient.setY(firstsumY - secondsumY);
+
+    gradientJastrowAllParticles += JastrowFactorGradient;
     }
-    /*cout << "=======JastrowPart=========" << endl;
-    for (size_t m=0; m<JastrowFactorGradientAll.size(); m++){
-       vec3 vec = JastrowFactorGradientAll[m];
-       vec.print();
-    }
-    cout << "=======END-----JastrowPart=========" << endl;
-    */
     //end - first term
     //second term
-    vector<vec3> SDGradientAll;
     vec3 SDGradient;
+    vec3 gradientSDAllParticles;
     QuantumDot::FirstDerivativeArray GradientX;
     QuantumDot::FirstDerivativeArray GradientY;
     for (size_t i=0; i<m_particles.size(); i++) {
@@ -506,32 +498,16 @@ void QuantumDot::calculateDotProdGradientJastrowAndSD(){
             if (particle_i->spin != 1) {
                 SummGradX += m_SD_down_inverse(j,i-m_shells.size())*GradientX(particle_i->position.x(), particle_i->position.y(), exponent, m_alphaomega, m_sqrtomega);
                 SummGradY += m_SD_down_inverse(j,i-m_shells.size())*GradientY(particle_i->position.x(), particle_i->position.y(), exponent, m_alphaomega, m_sqrtomega );
-                //cout << m_SD_down_inverse(j,i-m_shells.size()) << "!!!!!!!" << endl;
             } else {
                 SummGradX += m_SD_up_inverse(j,i)*GradientX(particle_i->position.x(), particle_i->position.y(), exponent, m_alphaomega, m_sqrtomega);
                 SummGradY += m_SD_up_inverse(j,i)*GradientY(particle_i->position.x(), particle_i->position.y(), exponent, m_alphaomega, m_sqrtomega );
-                //cout << m_SD_up_inverse(j,i) << "!!vvv!!!" << endl;
             }
         }
         SDGradient.setX(SummGradX);
         SDGradient.setY(SummGradY);
-        SDGradientAll.push_back(SDGradient);
+        gradientSDAllParticles += SDGradient;
     }
-    /*cout << "=======SDGRAD=========" << endl;
-    for (size_t m=0; m<SDGradientAll.size(); m++){
-       vec3 vec = SDGradientAll[m];
-       vec.print();
-    }
-    cout << "========ENDSD========" << endl;
-    */
-    //end - second term
-    vec3 dotprod;
-    for (size_t m=0; m<SDGradientAll.size(); m++){
-       vec3 SD = SDGradientAll[m];
-       vec3 J = JastrowFactorGradientAll[m];
-       dotprod += SD*J;
-    }
-    m_DotProdGradientJastrowAndSD=dotprod.x()+dotprod.y();
+    m_DotProdGradientJastrowAndSD=gradientSDAllParticles[0]*gradientJastrowAllParticles[0] + gradientSDAllParticles[1]*gradientJastrowAllParticles[1];
 }
 
 void QuantumDot::calculateLaplasianJastrow(){
@@ -644,6 +620,9 @@ void QuantumDot::applyVMC(int MCSamples){
         }
         MC_counter++;
         Elocal += calculateLocalEnergy();
+        //cout << m_LaplasianSD << "   LSD" << endl;
+        //cout << m_LaplasianJastrow << "   LJ" << endl;
+        //cout << 2.0*m_DotProdGradientJastrowAndSD << "   DotProd" << endl;
         //cout << "MC counter " << MC_counter << endl;
     }
     cout << "Accept " << ((double)accept/(double)(m_particles.size()*MCSamples))*100.0 << endl;
