@@ -30,6 +30,22 @@ QuantumDot::QuantumDot(double h_omega, int ParticlesNumber){
     SecondDerivRefArray[1] = &QuantumDot::Fi1Derivative2;
     SecondDerivRefArray[2] = &QuantumDot::Fi2Derivative2;
     SecondDerivRefArray[3] = &QuantumDot::Fi3Derivative2;
+    AlphaDerivativeRefArray[0]=&QuantumDot::Fi0AlphaDerivative;
+    AlphaDerivativeRefArray[1]=&QuantumDot::Fi1AlphaDerivative;
+    AlphaDerivativeRefArray[2]=&QuantumDot::Fi2AlphaDerivative;
+    AlphaDerivativeRefArray[3]=&QuantumDot::Fi3AlphaDerivative;
+    AlphaDerivativeRefArray[4]=&QuantumDot::Fi4AlphaDerivative;
+    AlphaDerivativeRefArray[5]=&QuantumDot::Fi5AlphaDerivative;
+    m_ExpectationLocalEnergyDerivativeAlphaSecondTerm = 0.0;
+    m_ExpectationLocalEnergyDerivativeBetaSecondTerm = 0.0;
+    m_ExpectationLocalEnergyDerivativeAlphaFirstTerm = 0.0;
+    m_ExpectationLocalEnergyDerivativeBetaFirstTerm = 0.0;
+    m_LocalEnergyWFDerivativeAlpha = 0.0;
+    m_LocalEnergyWFDerivativeBeta = 0.0;
+    m_MeanLocalEnergyWFDerivativeAlpha = 0.0;
+    m_MeanLocalEnergyWFDerivativeBeta = 0.0;
+    m_ExpectationLocalEnergyDerivativeAlpha = 0.0;
+    m_ExpectationLocalEnergyDerivativeBeta = 0.0;
 
 }
 
@@ -116,6 +132,10 @@ QuantumDot::FirstDerivativeArray QuantumDot::getGradientY(int i){
 
 QuantumDot::SecondDerivativeArray QuantumDot::getLaplasian(int i){
     return SecondDerivRefArray[i];
+}
+
+QuantumDot::AlphaDerivativeArray QuantumDot::getDerivativeSDonAlpha(int i){
+    return AlphaDerivativeRefArray[i];
 }
 
 void QuantumDot::setUpSlaterDeterminant(){
@@ -623,6 +643,127 @@ void QuantumDot::applyVMC(int MCSamples){
     cout << "Elocal " << (double) Elocal/MCSamples << endl;
     cout << "Kinetic " << (double) m_KineticEnergy/MCSamples << endl;
     cout << "Potential " << (double) m_PotentialEnergy/MCSamples << endl;
+}
+
+void QuantumDot::resetSteepestDescentHelpVars(){
+    m_ExpectationLocalEnergyDerivativeAlphaSecondTerm = 0.0;
+    m_ExpectationLocalEnergyDerivativeBetaSecondTerm = 0.0;
+    m_ExpectationLocalEnergyDerivativeAlphaFirstTerm = 0.0;
+    m_ExpectationLocalEnergyDerivativeBetaFirstTerm = 0.0;
+    m_LocalEnergyWFDerivativeAlpha = 0.0;
+    m_LocalEnergyWFDerivativeBeta = 0.0;
+    m_MeanLocalEnergyWFDerivativeAlpha = 0.0;
+    m_MeanLocalEnergyWFDerivativeBeta = 0.0;
+    m_ExpectationLocalEnergyDerivativeAlpha = 0.0;
+    m_ExpectationLocalEnergyDerivativeBeta = 0.0;
+}
+
+void QuantumDot::steepestDescentCalculateWFderivativeOnVarParameters(){
+    QuantumDot::AlphaDerivativeArray DerivativeOnAlpha;
+    arma::mat MatDerivativeOnAlphaSpinUp;
+    arma::mat MatDerivativeOnAlphaSpinDown;
+    MatDerivativeOnAlphaSpinUp.zeros(m_shells.size(),m_shells.size());
+    MatDerivativeOnAlphaSpinDown.zeros(m_shells.size(),m_shells.size());
+    for(size_t k=0; k< m_particles.size()/2 ; k++) {
+        Particle *particle_spin_up = m_particles[k];
+        Particle *particle_spin_down = m_particles[k+m_particles.size()/2];
+        for(size_t l=0; l< m_shells.size() ; l++) {
+            DerivativeOnAlpha = getDerivativeSDonAlpha(l);
+            double expSD_up = exp(-0.5*m_alphaomega*particle_spin_up->position.lengthSquared());
+            double expSD_down = exp(-0.5*m_alphaomega*particle_spin_down->position.lengthSquared());
+            MatDerivativeOnAlphaSpinUp(k,l) = DerivativeOnAlpha(particle_spin_up->position.x(), particle_spin_up->position.y(), expSD_up, m_sqrtomega, homega);
+            MatDerivativeOnAlphaSpinDown(k,l) = DerivativeOnAlpha(particle_spin_down->position.x(), particle_spin_down->position.y(), expSD_down, m_sqrtomega, homega);
+        }
+    }
+    m_LocalEnergyWFDerivativeAlpha = arma::trace(MatDerivativeOnAlphaSpinUp*m_SD_up_inverse) + arma::trace(MatDerivativeOnAlphaSpinDown*m_SD_down_inverse);
+    m_LocalEnergyWFDerivativeBeta = 0.0;
+    for(size_t i=0; i< m_particles.size() ; i++){
+        Particle *particle_i = m_particles[i];
+        for(size_t j=i+1; j< m_particles.size() ; j++){
+            Particle *particle_j = m_particles[j];
+            if (particle_j->spin != particle_i->spin) {
+                m_LocalEnergyWFDerivativeBeta += 1.0/(1.0/(particle_i->position - particle_j->position).length() + beta)*(1.0/(particle_i->position - particle_j->position).length() + beta);
+            } else {
+                m_LocalEnergyWFDerivativeBeta += 1.0/(3.0*(1.0/(particle_i->position - particle_j->position).length() + beta)*(1.0/(particle_i->position - particle_j->position).length() + beta));
+            }
+        }
+    }
+}
+
+void QuantumDot::applyVMCSteepestDescent(int MCSamples){
+    setUpSlaterDeterminant();
+    random_device rd;
+    mt19937_64 gen(rd());
+    uniform_real_distribution<double> RandomNumberGenerator(0.0,1.0);
+    normal_distribution<double> GaussianBlur(0.0, 1.0);
+    m_KineticEnergy = 0.0;
+    m_PotentialEnergy = 0.0;
+    int MC_counter = 0;
+    int accept=0;
+    double ElocalSum = 0.0;
+    for(int i=0; i<MCSamples; i++){
+        for(size_t j=0; j< m_particles.size() ; j++) {
+            Particle *particle = m_particles[j];
+            calculateQuantumForce(j);
+            particle->positionNew.setX(particle->position.x() + GaussianBlur(gen)*sqrt(dt) + m_QForceOld.x()*dt*D);
+            particle->positionNew.setY(particle->position.y() + GaussianBlur(gen)*sqrt(dt) + m_QForceOld.y()*dt*D);
+            double SDRatio = calculateSDRatio(j);
+            double JRatio = calculateJastrowRatio(j);
+            calculateQuantumForceNew(j);
+            double GRatio = calculateGreenFunctionRatio(j);
+            double w = SDRatio*JRatio*GRatio;
+            double r = RandomNumberGenerator(gen);
+            if (w >= r) {
+               particle->position.setX(particle->positionNew.x());
+               particle->position.setY(particle->positionNew.y());
+               updateSlaterDeterminant(j);
+               accept++;
+            }
+        }
+        MC_counter++;
+        double LocalEnergy = calculateLocalEnergy();
+        steepestDescentCalculateWFderivativeOnVarParameters();
+        m_MeanLocalEnergyWFDerivativeAlpha += m_LocalEnergyWFDerivativeAlpha;
+        m_MeanLocalEnergyWFDerivativeBeta += m_LocalEnergyWFDerivativeBeta;
+        m_ExpectationLocalEnergyDerivativeAlphaFirstTerm += m_LocalEnergyWFDerivativeAlpha*LocalEnergy;
+        m_ExpectationLocalEnergyDerivativeBetaFirstTerm += m_LocalEnergyWFDerivativeBeta*LocalEnergy;
+        ElocalSum += LocalEnergy;
+    }
+    double Energy = (double) ElocalSum/MCSamples;
+    m_ExpectationLocalEnergyDerivativeAlphaSecondTerm = Energy*((double)m_MeanLocalEnergyWFDerivativeAlpha/MCSamples);
+    m_ExpectationLocalEnergyDerivativeBetaSecondTerm = Energy*((double)m_MeanLocalEnergyWFDerivativeBeta/MCSamples);
+    m_ExpectationLocalEnergyDerivativeAlphaFirstTerm /= (double)MCSamples;
+    m_ExpectationLocalEnergyDerivativeBetaFirstTerm /= (double)MCSamples;
+    m_ExpectationLocalEnergyDerivativeAlpha = 2.0*(m_ExpectationLocalEnergyDerivativeAlphaFirstTerm-m_ExpectationLocalEnergyDerivativeAlphaSecondTerm);
+    m_ExpectationLocalEnergyDerivativeBeta = 2.0*(m_ExpectationLocalEnergyDerivativeBetaFirstTerm-m_ExpectationLocalEnergyDerivativeBetaSecondTerm);
+    cout << "Accept " << ((double)accept/(double)(m_particles.size()*MCSamples))*100.0 << endl;
+    cout << "Elocal " << Energy << endl;
+}
+
+void QuantumDot::applySteepestDescent(int MonteCarloSamplesVariational,
+                                      int MaxSteepestDescentIterations,
+                                      double SteepestDescentStep,
+                                      double tolerance){
+    vec3 VarParametersOld;
+    vec3 VarParametersNew;
+    vec3 LocalEnergyExpectDerivative;
+    int i = 0;
+    double Diff = 0.1;
+    VarParametersOld.set(alpha, beta, 0.0);
+    while (i < MaxSteepestDescentIterations || Diff < tolerance ){
+        cout << "alpha " << alpha << endl;
+        cout << "beta " << beta << endl;
+        applyVMCSteepestDescent(MonteCarloSamplesVariational);
+        LocalEnergyExpectDerivative.set(m_ExpectationLocalEnergyDerivativeAlpha, m_ExpectationLocalEnergyDerivativeBeta, 0.0);
+        VarParametersNew = VarParametersOld - LocalEnergyExpectDerivative*SteepestDescentStep;
+        setVariationalParameters(VarParametersNew[0], VarParametersNew[1]);
+        VarParametersOld.set(VarParametersNew[0], VarParametersNew[1],0.0);
+        resetSteepestDescentHelpVars();
+        i++;
+        cout << "Steepest Descent iteration # " << i << endl;
+        cout << "=================================" << endl;
+
+    }
 }
 
 

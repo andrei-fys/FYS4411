@@ -20,21 +20,16 @@ public:
 
     void getQuantumDotParticlesCoordinates();
     void getQuantumDotStates();
-    //void setUpSlaterDeterminant(); //set initial SD
-
-
 
     void setVariationalParameters(double, double);
     void applyVMC(int);
-    //void applyVMCMPI(int);
     void applyVMCstandard(int);
     double Alpha() { return alpha; }
     double Beta() { return beta; }
     void setCoulombInterraction(int);
     void setJastrowFactor(int);
 
-//    void applySteepestDescent(int, int, double, double);
-//    void setMPIenv(int, char**);
+    void applySteepestDescent(int, int, double, double);
 
 private:
     std::vector<Particle*> m_particles;
@@ -49,6 +44,8 @@ private:
     FirstDerivativeArray * FirstDerivRefArrayX = new FirstDerivativeArray[4]; //array with refs to first derivatives X
     FirstDerivativeArray * FirstDerivRefArrayY = new FirstDerivativeArray[4]; //array with refs to first derivatives Y
     typedef double (*SecondDerivativeArray) (double, double, double, double, double);
+    typedef double (*AlphaDerivativeArray) (double, double, double, double, double);
+    AlphaDerivativeArray *AlphaDerivativeRefArray = new AlphaDerivativeArray[6]; // array with refs to first derivatives wrt alpha
     SecondDerivativeArray * SecondDerivRefArray = new SecondDerivativeArray[4]; //array with refs to second derivatives
     //Hermite polinomials
     static double H0(double x) { return 1.0; }
@@ -70,8 +67,13 @@ private:
     static double Fi1Derivative2(double x, double y, double exponent, double aom, double sqrtom) { return exponent*2.0*sqrtom*aom*y*(aom*(x*x + y*y)-4.0); }
     static double Fi2Derivative2(double x, double y, double exponent, double aom, double sqrtom) { return exponent*2.0*sqrtom*aom*x*(aom*(x*x + y*y)-4.0); }
     static double Fi3Derivative2(double x, double y, double exponent, double aom, double sqrtom) { return 1; }
-
-
+    //Derivatives for steepest decent
+    static double Fi0AlphaDerivative(double x, double y, double exponent, double sqrtom, double omega) { return -0.5*omega*(x*x+y*y)*exponent; }
+    static double Fi1AlphaDerivative(double x, double y, double exponent, double sqrtom, double omega) { return -omega*(x*x+y*y)*exponent*sqrtom*y; }
+    static double Fi2AlphaDerivative(double x, double y, double exponent, double sqrtom, double omega) { return -omega*(x*x+y*y)*exponent*sqrtom*x; }
+    static double Fi3AlphaDerivative(double x, double y, double exponent, double sqrtom, double omega) { return -omega*(x*x+y*y)*exponent*(2*omega*y*y-1); }
+    static double Fi4AlphaDerivative(double x, double y, double exponent, double sqrtom, double omega) { return -2*omega*omega*(x*x+y*y)*exponent*x*y; }
+    static double Fi5AlphaDerivative(double x, double y, double exponent, double sqrtom, double omega) { return -omega*(x*x+y*y)*exponent*(2*omega*x*x-1); }
 
     void setUpStatesCartesian(int); //sets up nx/ny for cartesian basis
     void setUpCoordinatesCartesian(int); //sets up initial coordinates
@@ -80,6 +82,7 @@ private:
     FirstDerivativeArray getGradientX(int);
     FirstDerivativeArray getGradientY(int);
     SecondDerivativeArray getLaplasian(int);
+    AlphaDerivativeArray getDerivativeSDonAlpha(int); // input a state function number in SD
 
     double calculateSDRatio(size_t);
     double calculateGreenFunctionRatio(size_t);
@@ -92,6 +95,9 @@ private:
     void calculateDotProdGradientJastrowAndSD();
     void calculateLaplasianJastrow();
     void calculateLaplasianSD();
+    void applyVMCSteepestDescent(int);
+    void steepestDescentCalculateWFderivativeOnVarParameters();
+    void resetSteepestDescentHelpVars();
 
 
     int m_sm = -1;
@@ -118,21 +124,7 @@ private:
     double m_KineticEnergy;
     double m_PotentialEnergy;
 
-
-
-
-//    std::vector<double> m_localEnergy;
-
-
-
-
-
-
-
-
-    //double m_Energy;
     //SteepestDescent variables
-/*    bool m_InsideSteepestDescent;
     double m_ExpectationLocalEnergyDerivativeAlphaSecondTerm;
     double m_ExpectationLocalEnergyDerivativeBetaSecondTerm;
     double m_ExpectationLocalEnergyDerivativeAlphaFirstTerm;
@@ -144,6 +136,19 @@ private:
     double m_ExpectationLocalEnergyDerivativeAlpha;
     double m_ExpectationLocalEnergyDerivativeBeta;
 
+
+//    std::vector<double> m_localEnergy;
+
+
+
+
+
+
+
+
+
+
+/*
 
     double calculateLocalEnergy();
     double calculateLocalEnergyWithoutJastrow();
