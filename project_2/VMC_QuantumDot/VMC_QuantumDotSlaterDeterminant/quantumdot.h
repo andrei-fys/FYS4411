@@ -109,7 +109,7 @@ private:
     arma::mat m_SD_up;
     double m_RSD; //Ratio of SD´s
     double m_RJ; //Ratio of Jartrow´s factors
-    double m_gradientDotProductJastrow;
+    double m_gradientDotProductJastrowAllParticles;
     double m_LaplasianSD;
     double m_LaplasianJastrow;
     double m_DotProdGradientJastrowAndSD;

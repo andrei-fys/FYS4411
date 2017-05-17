@@ -445,8 +445,8 @@ double QuantumDot::calculateLocalEnergy(){
 
 
     if (m_Jastrow == 1 ) {  //Takes into acconunt correlations
-    calculateDotProdGradientJastrowAndSD();
-    calculateLaplasianJastrow();
+        calculateDotProdGradientJastrowAndSD();
+        calculateLaplasianJastrow();
     } else {
         m_LaplasianJastrow = 0.0;
         m_DotProdGradientJastrowAndSD = 0.0;
@@ -468,9 +468,10 @@ double QuantumDot::calculateLocalEnergy(){
             }
         }
     }
-    double PotentialEnergy = HOPotentialEnergy + CoulombPotentialEnergy;
-    double KineticEnergy = -0.5*(m_LaplasianSD + m_LaplasianJastrow + 2.0*m_DotProdGradientJastrowAndSD);
-
+    double PotentialEnergy = 0.0;
+    double KineticEnergy = 0.0;
+    PotentialEnergy = HOPotentialEnergy + CoulombPotentialEnergy;
+    KineticEnergy = -0.5*(m_LaplasianSD + m_LaplasianJastrow + 2.0*m_DotProdGradientJastrowAndSD);
     m_KineticEnergy += KineticEnergy;
     m_PotentialEnergy += PotentialEnergy;
 
@@ -479,6 +480,7 @@ double QuantumDot::calculateLocalEnergy(){
 
 void QuantumDot::calculateDotProdGradientJastrowAndSD(){
     m_DotProdGradientJastrowAndSD = 0.0;
+    m_gradientDotProductJastrowAllParticles = 0.0;
     vec3 JastrowFactorGradient;
     vec3 RelativeDistance;
     vec3 SDGradient;
@@ -541,7 +543,7 @@ void QuantumDot::calculateDotProdGradientJastrowAndSD(){
         JastrowFactorGradient.setY(firstsumY - secondsumY);
         m_DotProdGradientJastrowAndSD += (SDGradient[0]*JastrowFactorGradient[0] + SDGradient[1]*JastrowFactorGradient[1]);
     }
-
+    m_gradientDotProductJastrowAllParticles = JastrowFactorGradient.lengthSquared();
 }
 
 void QuantumDot::calculateLaplasianJastrow(){
@@ -579,9 +581,9 @@ void QuantumDot::calculateLaplasianJastrow(){
             abetaterm /= RelativeDistance.length();
             secondsum += (abetaterm + abetaterm2);
         }
-    LaplasianJastrow += firstsum + secondsum;
+    LaplasianJastrow += (firstsum + secondsum);
     }
-    LaplasianJastrow += m_gradientDotProductJastrow;
+    LaplasianJastrow += m_gradientDotProductJastrowAllParticles;
     m_LaplasianJastrow = LaplasianJastrow;
 }
 
@@ -750,7 +752,7 @@ void QuantumDot::applySteepestDescent(int MonteCarloSamplesVariational,
     int i = 0;
     double Diff = 0.1;
     VarParametersOld.set(alpha, beta, 0.0);
-    while (i < MaxSteepestDescentIterations || Diff < tolerance ){
+    while (i < MaxSteepestDescentIterations && Diff < tolerance ){
         cout << "alpha " << alpha << endl;
         cout << "beta " << beta << endl;
         applyVMCSteepestDescent(MonteCarloSamplesVariational);

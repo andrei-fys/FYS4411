@@ -12,9 +12,9 @@ int main(int numberOfArguments, char **argumentList)
     double alpha = 1.0;
     double beta = 0.4;
 
-    int MonteCarloSamplesVariational = 1000000;
+    int MonteCarloSamplesVariational = 100000;
     int MaxSteepestDescentIterations = 20;
-    double SteepestDescentStep = 0.05;
+    double SteepestDescentStep = 0.1;
     double tolerance = 0.7;
 
     // If a first argument is provided, it is the number of electrons
