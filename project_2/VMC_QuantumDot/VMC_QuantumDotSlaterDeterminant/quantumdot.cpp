@@ -68,6 +68,14 @@ void QuantumDot::setUpStatesCartesian(int ParticlesNumber) {
         }
 }
 
+void QuantumDot::setCoulombInterraction(int trigger){
+    m_Coulomb = trigger;
+}
+
+void QuantumDot::setJastrowFactor(int trigger){
+    m_Jastrow = trigger;
+}
+
 void QuantumDot::getQuantumDotParticlesCoordinates(){
     for(Particle *particle : m_particles){
         particle->position.print();
@@ -412,25 +420,42 @@ void QuantumDot::updateInverseSlaterDeterminant(size_t i){
 
 double QuantumDot::calculateLocalEnergy(){
     //double LocalEnergy;
+
+    calculateLaplasianSD(); //Main term
+
+
+    if (m_Jastrow == 1 ) {  //Takes into acconunt correlations
     calculateDotProdGradientJastrowAndSD();
     calculateLaplasianJastrow();
-    calculateLaplasianSD();
-    double HOPotentialEnergy = 0.0;
+    } else {
+        m_LaplasianJastrow = 0.0;
+        m_DotProdGradientJastrowAndSD = 0.0;
+    }
+
+    double HOPotentialEnergy = 0.0; // Harmonic oscillator part
     for(size_t j=0; j< m_particles.size() ; j++) {
         Particle *particle = m_particles[j];
         HOPotentialEnergy += 0.5*m_homega2*particle->position.lengthSquared();
     }
-    double CoulombPotentialEnergy = 0.0;
-    for(size_t i=0; i< m_particles.size() ; i++) {
-        Particle *particle_i = m_particles[i];
-        for(size_t j=i+1; j< m_particles.size() ; j++){
-            Particle *particle_j = m_particles[j];
-            CoulombPotentialEnergy += 1.0/(particle_i->position - particle_j->position).length();
+
+    double CoulombPotentialEnergy = 0.0; //Takes into account Coulomb interraction between electrons
+    if (m_Coulomb == 1 ) {
+        for(size_t i=0; i< m_particles.size() ; i++) {
+            Particle *particle_i = m_particles[i];
+            for(size_t j=i+1; j< m_particles.size() ; j++){
+                Particle *particle_j = m_particles[j];
+                CoulombPotentialEnergy += 1.0/(particle_i->position - particle_j->position).length();
+            }
         }
     }
-    return -0.5*(m_LaplasianSD + m_LaplasianJastrow + 2.0*m_DotProdGradientJastrowAndSD) + HOPotentialEnergy + CoulombPotentialEnergy;
-}
+    double PotentialEnergy = HOPotentialEnergy + CoulombPotentialEnergy;
+    double KineticEnergy = -0.5*(m_LaplasianSD + m_LaplasianJastrow + 2.0*m_DotProdGradientJastrowAndSD);
 
+    m_KineticEnergy += KineticEnergy;
+    m_PotentialEnergy += PotentialEnergy;
+
+    return KineticEnergy + PotentialEnergy;
+}
 
 void QuantumDot::calculateDotProdGradientJastrowAndSD(){
     m_DotProdGradientJastrowAndSD = 0.0;
@@ -487,10 +512,10 @@ void QuantumDot::calculateDotProdGradientJastrowAndSD(){
             } else {
                 abetaterm = 1.0/(3.0*(1.0 + beta*RelativeDistance.length())*(1.0 + beta*RelativeDistance.length()));
             }
-            double reldistfirstX = (particle_k->position.x() - particle_i->position.x())/RelativeDistance.length();
-            double reldistfirstY = (particle_k->position.y() - particle_i->position.y())/RelativeDistance.length();
-            secondsumX += reldistfirstX*abetaterm;
-            secondsumY += reldistfirstY*abetaterm;
+            double reldistsecondX = (particle_k->position.x() - particle_i->position.x())/RelativeDistance.length();
+            double reldistsecondY = (particle_k->position.y() - particle_i->position.y())/RelativeDistance.length();
+            secondsumX += reldistsecondX*abetaterm;
+            secondsumY += reldistsecondY*abetaterm;
         }
         JastrowFactorGradient.setX(firstsumX - secondsumX);
         JastrowFactorGradient.setY(firstsumY - secondsumY);
@@ -566,67 +591,39 @@ void QuantumDot::applyVMC(int MCSamples){
     mt19937_64 gen(rd());
     uniform_real_distribution<double> RandomNumberGenerator(0.0,1.0);
     normal_distribution<double> GaussianBlur(0.0, 1.0);
-
+    m_KineticEnergy = 0.0;
+    m_PotentialEnergy = 0.0;
     int MC_counter = 0;
     int accept=0;
     double Elocal = 0.0;
-    double E_LaplasianSD = 0.0;
-    double E_LaplasianJastrow = 0.0;
-    double E_DotProdGradientJastrowAndSD = 0.0;
     for(int i=0; i<MCSamples; i++){
         for(size_t j=0; j< m_particles.size() ; j++) {
             Particle *particle = m_particles[j];
             calculateQuantumForce(j);
-            particle->positionNew.setX(particle->position.x() + GaussianBlur(gen)*sqrt(dt) +m_QForceOld.x()*dt*D);
-            particle->positionNew.setY(particle->position.y() + GaussianBlur(gen)*sqrt(dt) +m_QForceOld.y()*dt*D);
+            particle->positionNew.setX(particle->position.x() + GaussianBlur(gen)*sqrt(dt) + m_QForceOld.x()*dt*D);
+            particle->positionNew.setY(particle->position.y() + GaussianBlur(gen)*sqrt(dt) + m_QForceOld.y()*dt*D);
             double SDRatio = calculateSDRatio(j);
-            //cout << "SD Ratio " << SDRatio << endl;
             double JRatio = calculateJastrowRatio(j);
-            //cout << "Jastrow Ratio " << JRatio << endl;
             calculateQuantumForceNew(j);
-            //cout << "Quantum force "<< m_QForceNew << endl;
             double GRatio = calculateGreenFunctionRatio(j);
-            //cout << "Green ratio"<< GRatio << endl;
-            //double w = SDRatio*JRatio*GRatio;
-            //cout << "W          "<< w << endl;
             double w = SDRatio*JRatio*GRatio;
             double r = RandomNumberGenerator(gen);
             if (w >= r) {
                particle->position.setX(particle->positionNew.x());
                particle->position.setY(particle->positionNew.y());
-               //m_SD_up.print();
-               //m_SD_down.print();
-               //m_SD_up_inverse.print();
-               //m_SD_down_inverse.print();
-               //cout << "--------------------" << endl;
-               //updateInverseSlaterDeterminant(j);
                updateSlaterDeterminant(j);
-               //m_SD_up.print();
-               //m_SD_down.print();
-               //m_SD_up_inverse.print();
-               //m_SD_down_inverse.print();
-               //cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!" << endl;
-
                accept++;
             }
         }
         MC_counter++;
         Elocal += calculateLocalEnergy();
-        //E_LaplasianSD += m_LaplasianSD*m_LaplasianSD;
-        //E_LaplasianJastrow += m_LaplasianJastrow*m_LaplasianJastrow;
-        //E_DotProdGradientJastrowAndSD += 2.0*m_DotProdGradientJastrowAndSD*2.0*m_DotProdGradientJastrowAndSD;
-        //cout << m_LaplasianSD << "   LSD" << endl;
-        //cout << m_LaplasianJastrow << "   LJ" << endl;
-        //cout << 2.0*m_DotProdGradientJastrowAndSD << "   DotProd" << endl;
-        //cout << "MC counter " << MC_counter << endl;
+
     }
     cout << "Accept " << ((double)accept/(double)(m_particles.size()*MCSamples))*100.0 << endl;
     cout << "Elocal " << (double) Elocal/MCSamples << endl;
-    //cout << (double) E_LaplasianSD/MCSamples << "   LSD" << endl;
-    //cout << (double) E_LaplasianJastrow/MCSamples << "   LJ" << endl;
-    //cout << (double) E_DotProdGradientJastrowAndSD/(double)MCSamples << "   DotProd" << endl;
+    cout << "Kinetic " << (double) m_KineticEnergy/MCSamples << endl;
+    cout << "Potential " << (double) m_PotentialEnergy/MCSamples << endl;
 }
-
 
 
 /*void QuantumDot::applyVMCMPI(int MCSamples){
@@ -852,13 +849,7 @@ double QuantumDot::calculateLocalEnergyWithoutJastrow(){
 
 /*
 
-void QuantumDot::setCoulombInterraction(int trigger){
-    m_Coulomb = trigger;
-}
 
-void QuantumDot::setJastrowFactor(int trigger){
-    m_Jastrow = trigger;
-}
 
 void QuantumDot::setSpinParameter(int trigger){
     m_a = trigger;

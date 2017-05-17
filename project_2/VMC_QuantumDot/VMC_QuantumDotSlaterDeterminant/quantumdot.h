@@ -30,9 +30,9 @@ public:
     void applyVMCstandard(int);
     double Alpha() { return alpha; }
     double Beta() { return beta; }
-//    void setCoulombInterraction(int);
+    void setCoulombInterraction(int);
     void setJastrowFactor(int);
-//    void setSpinParameter(int);
+
 //    void applySteepestDescent(int, int, double, double);
 //    void setMPIenv(int, char**);
 
@@ -107,7 +107,16 @@ private:
     double m_LaplasianSD;
     double m_LaplasianJastrow;
     double m_DotProdGradientJastrowAndSD;
-
+    const double m_s = 0.5;
+    const double D = 0.5;     // difussion constant for importance sampling
+    const double dt = 0.001; // dt for importance sampling
+    int m_Coulomb;
+    int m_Jastrow;
+    double m_homega2;
+    double m_alpha2;
+    double m_alphaomega2;
+    double m_KineticEnergy;
+    double m_PotentialEnergy;
 
 
 
@@ -116,15 +125,7 @@ private:
 
 
 
-    const double m_s = 0.5;
-    const double D = 0.5;     // difussion constant for importance sampling
-    const double dt = 0.001; // dt for importance sampling
-//    int m_Coulomb;
-    int m_Jastrow;
-    double m_homega2;
-    double m_alpha2;
-    double m_alphaomega2;
-//    double m_a;
+
 
 
 

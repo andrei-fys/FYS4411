@@ -6,7 +6,7 @@ using namespace std;
 int main(int numberOfArguments, char **argumentList)
 {
 
-    int NumberOfElectrons = 2;
+    int NumberOfElectrons = 6;
     double HOStrenth = 1.0;
     int MonteCarloSamples = 1000000;
     double alpha = 1.0;
@@ -25,6 +25,8 @@ int main(int numberOfArguments, char **argumentList)
 
     QuantumDot qdot(HOStrenth, NumberOfElectrons);
     qdot.setVariationalParameters(alpha, beta);
+    qdot.setCoulombInterraction(1);
+    qdot.setJastrowFactor(1);
     qdot.applyVMC(MonteCarloSamples);
     //qdot.getQuantumDotStates();
     //qdot.getQuantumDotParticlesCoordinates();
