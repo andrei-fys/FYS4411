@@ -656,6 +656,7 @@ void QuantumDot::applyVMC(int MCSamples){
                particle->position.setX(particle->positionNew.x());
                particle->position.setY(particle->positionNew.y());
                updateSlaterDeterminant(j);
+               //updateInverseSlaterDeterminant(j);
                accept++;
             }
         }
