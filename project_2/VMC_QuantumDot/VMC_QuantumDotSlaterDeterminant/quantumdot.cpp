@@ -191,31 +191,33 @@ void QuantumDot::calculateQuantumForce(size_t i){
     double firstsumY = 0.0;
     double secondsumX = 0.0;
     double secondsumY = 0.0;
-    for(size_t k=0; k<i ; k++) {
-        Particle *particle = m_particles[k];
-        RelativeDistance = particle->position - moving_particle->position;
-        if (moving_particle->spin != particle->spin) {
-            abetaterm = 1.0/((1.0 + beta*RelativeDistance.length())*(1.0 + beta*RelativeDistance.length()));
-        } else {
-            abetaterm = 1.0/(3.0*(1.0 + beta*RelativeDistance.length())*(1.0 + beta*RelativeDistance.length()));
+    if (m_Jastrow != 0) {
+        for(size_t k=0; k<i ; k++) {
+            Particle *particle = m_particles[k];
+            RelativeDistance = particle->position - moving_particle->position;
+            if (moving_particle->spin != particle->spin) {
+                abetaterm = 1.0/((1.0 + beta*RelativeDistance.length())*(1.0 + beta*RelativeDistance.length()));
+            } else {
+                abetaterm = 1.0/(3.0*(1.0 + beta*RelativeDistance.length())*(1.0 + beta*RelativeDistance.length()));
+            }
+            double reldistfirstX = (moving_particle->position.x() - particle->position.x())/RelativeDistance.length();
+            double reldistfirstY = (moving_particle->position.y() - particle->position.y())/RelativeDistance.length();
+            firstsumX += reldistfirstX*abetaterm;
+            firstsumY += reldistfirstY*abetaterm;
         }
-        double reldistfirstX = (moving_particle->position.x() - particle->position.x())/RelativeDistance.length();
-        double reldistfirstY = (moving_particle->position.y() - particle->position.y())/RelativeDistance.length();
-        firstsumX += reldistfirstX*abetaterm;
-        firstsumY += reldistfirstY*abetaterm;
-    }
-    for(size_t k=i+1; k< m_particles.size() ; k++) {
-        Particle *particle = m_particles[k];
-        RelativeDistance = particle->position - moving_particle->position;
-        if (moving_particle->spin != particle->spin) {
-            abetaterm = 1.0/((1.0 + beta*RelativeDistance.length())*(1.0 + beta*RelativeDistance.length()));
-        } else {
-            abetaterm = 1.0/(3.0*(1.0 + beta*RelativeDistance.length())*(1.0 + beta*RelativeDistance.length()));
+        for(size_t k=i+1; k< m_particles.size() ; k++) {
+            Particle *particle = m_particles[k];
+            RelativeDistance = particle->position - moving_particle->position;
+            if (moving_particle->spin != particle->spin) {
+                abetaterm = 1.0/((1.0 + beta*RelativeDistance.length())*(1.0 + beta*RelativeDistance.length()));
+            } else {
+                abetaterm = 1.0/(3.0*(1.0 + beta*RelativeDistance.length())*(1.0 + beta*RelativeDistance.length()));
+            }
+            double reldistfirstX = (particle->position.x() - moving_particle->position.x())/RelativeDistance.length();
+            double reldistfirstY = (particle->position.y() - moving_particle->position.y())/RelativeDistance.length();
+            secondsumX += reldistfirstX*abetaterm;
+            secondsumY += reldistfirstY*abetaterm;
         }
-        double reldistfirstX = (particle->position.x() - moving_particle->position.x())/RelativeDistance.length();
-        double reldistfirstY = (particle->position.y() - moving_particle->position.y())/RelativeDistance.length();
-        secondsumX += reldistfirstX*abetaterm;
-        secondsumY += reldistfirstY*abetaterm;
     }
     Fx = (firstsumX - secondsumX)*2.0 +SummGradX*2.0;
     Fy = (firstsumY - secondsumY)*2.0 +SummGradY*2.0;
@@ -250,31 +252,33 @@ void QuantumDot::calculateQuantumForceNew(size_t i){
     double firstsumY = 0.0;
     double secondsumX = 0.0;
     double secondsumY = 0.0;
-    for(size_t k=0; k<i ; k++) {
-        Particle *particle = m_particles[k];
-        RelativeDistance = particle->position - moving_particle->positionNew;
-        if (moving_particle->spin != particle->spin) {
-            abetaterm = 1.0/((1.0 + beta*RelativeDistance.length())*(1.0 + beta*RelativeDistance.length()));
-        } else {
-            abetaterm = 1.0/(3.0*(1.0 + beta*RelativeDistance.length())*(1.0 + beta*RelativeDistance.length()));
+    if (m_Jastrow != 0) {
+        for(size_t k=0; k<i ; k++) {
+            Particle *particle = m_particles[k];
+            RelativeDistance = particle->position - moving_particle->positionNew;
+            if (moving_particle->spin != particle->spin) {
+                abetaterm = 1.0/((1.0 + beta*RelativeDistance.length())*(1.0 + beta*RelativeDistance.length()));
+            } else {
+                abetaterm = 1.0/(3.0*(1.0 + beta*RelativeDistance.length())*(1.0 + beta*RelativeDistance.length()));
+            }
+            double reldistfirstX = (moving_particle->positionNew.x() - particle->position.x())/RelativeDistance.length();
+            double reldistfirstY = (moving_particle->positionNew.y() - particle->position.y())/RelativeDistance.length();
+            firstsumX += reldistfirstX*abetaterm;
+            firstsumY += reldistfirstY*abetaterm;
         }
-        double reldistfirstX = (moving_particle->positionNew.x() - particle->position.x())/RelativeDistance.length();
-        double reldistfirstY = (moving_particle->positionNew.y() - particle->position.y())/RelativeDistance.length();
-        firstsumX += reldistfirstX*abetaterm;
-        firstsumY += reldistfirstY*abetaterm;
-    }
-    for(size_t k=i+1; k< m_particles.size() ; k++) {
-        Particle *particle = m_particles[k];
-        RelativeDistance = particle->position - moving_particle->positionNew;
-        if (moving_particle->spin != particle->spin) {
-            abetaterm = 1.0/((1.0 + beta*RelativeDistance.length())*(1.0 + beta*RelativeDistance.length()));
-        } else {
-            abetaterm = 1.0/(3.0*(1.0 + beta*RelativeDistance.length())*(1.0 + beta*RelativeDistance.length()));
+        for(size_t k=i+1; k< m_particles.size() ; k++) {
+            Particle *particle = m_particles[k];
+            RelativeDistance = particle->position - moving_particle->positionNew;
+            if (moving_particle->spin != particle->spin) {
+                abetaterm = 1.0/((1.0 + beta*RelativeDistance.length())*(1.0 + beta*RelativeDistance.length()));
+            } else {
+                abetaterm = 1.0/(3.0*(1.0 + beta*RelativeDistance.length())*(1.0 + beta*RelativeDistance.length()));
+            }
+            double reldistfirstX = (particle->position.x() - moving_particle->positionNew.x())/RelativeDistance.length();
+            double reldistfirstY = (particle->position.y() - moving_particle->positionNew.y())/RelativeDistance.length();
+            secondsumX += reldistfirstX*abetaterm;
+            secondsumY += reldistfirstY*abetaterm;
         }
-        double reldistfirstX = (particle->position.x() - moving_particle->positionNew.x())/RelativeDistance.length();
-        double reldistfirstY = (particle->position.y() - moving_particle->positionNew.y())/RelativeDistance.length();
-        secondsumX += reldistfirstX*abetaterm;
-        secondsumY += reldistfirstY*abetaterm;
     }
     Fx = (firstsumX - secondsumX)*2.0  + SummGradX*2.0/(m_RSD*m_RJ);
     Fy = (firstsumY - secondsumY)*2.0  + SummGradY*2.0/(m_RSD*m_RJ);
@@ -296,6 +300,10 @@ double QuantumDot::calculateGreenFunctionRatio(size_t j){
 }
 
 double QuantumDot::calculateJastrowRatio(size_t i){
+    if (m_Jastrow == 0) {
+        m_RJ = 1.0;
+        return 1.0;
+    } else {
         Particle *moving_particle = m_particles[i];
         vec3 RelativeDistance;
         vec3 RelativeDistanceNew;
@@ -338,6 +346,7 @@ double QuantumDot::calculateJastrowRatio(size_t i){
         double RJ = exp(firstterm + secondterm);
         m_RJ = RJ;
         return RJ;
+    }
 }
 
 double QuantumDot::calculateSDRatio(size_t i){
