@@ -617,7 +617,8 @@ void QuantumDot::applyVMC(int MCSamples){
     m_PotentialEnergy = 0.0;
     int MC_counter = 0;
     int accept=0;
-    double Elocal = 0.0;
+    double MeanLocalEnergy = 0.0;
+    double MeanLocalEnergy2 = 0.0;
     for(int i=0; i<MCSamples; i++){
         for(size_t j=0; j< m_particles.size() ; j++) {
             Particle *particle = m_particles[j];
@@ -638,11 +639,17 @@ void QuantumDot::applyVMC(int MCSamples){
             }
         }
         MC_counter++;
-        Elocal += calculateLocalEnergy();
+        double Elocal = calculateLocalEnergy();
+        double Elocal2 = Elocal*Elocal;
+        MeanLocalEnergy += Elocal;
+        MeanLocalEnergy2 += Elocal2;
 
     }
+    MeanLocalEnergy /= (double) MCSamples;
+    MeanLocalEnergy2 /= (double) MCSamples;
     cout << "Accept " << ((double)accept/(double)(m_particles.size()*MCSamples))*100.0 << endl;
-    cout << "Elocal " << (double) Elocal/MCSamples << endl;
+    cout << "Elocal " << MeanLocalEnergy << endl;
+    cout << "Variance " << (MeanLocalEnergy2 - MeanLocalEnergy*MeanLocalEnergy)/MCSamples << endl;
     cout << "Kinetic " << (double) m_KineticEnergy/MCSamples << endl;
     cout << "Potential " << (double) m_PotentialEnergy/MCSamples << endl;
 }
