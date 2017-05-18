@@ -618,6 +618,10 @@ void QuantumDot::calculateLaplasianSD(){
 
 void QuantumDot::applyVMC(int MCSamples){
     setUpSlaterDeterminant();
+    vector<double> LocalEnergyVector;
+    //string string_rank = to_string(my_rank);
+    string outputfile = "LocalEnergy_";
+    //outputfile.append(string_rank);
     random_device rd;
     mt19937_64 gen(rd());
     uniform_real_distribution<double> RandomNumberGenerator(0.0,1.0);
@@ -647,12 +651,16 @@ void QuantumDot::applyVMC(int MCSamples){
                accept++;
             }
         }
-        MC_counter++;
         double Elocal = calculateLocalEnergy();
         double Elocal2 = Elocal*Elocal;
         MeanLocalEnergy += Elocal;
         MeanLocalEnergy2 += Elocal2;
-
+        LocalEnergyVector.push_back(Elocal);
+        if (i % 10000000 == 0){ //every 10 000 000 (ten millions) MC samples
+            writeVectorToBinaryFile(outputfile, LocalEnergyVector);
+            LocalEnergyVector.clear();
+        }
+        MC_counter++;
     }
     MeanLocalEnergy /= (double) MCSamples;
     MeanLocalEnergy2 /= (double) MCSamples;
@@ -782,6 +790,17 @@ void QuantumDot::applySteepestDescent(int MonteCarloSamplesVariational,
         cout << "=================================" << endl;
 
     }
+}
+
+
+void QuantumDot::writeVectorToBinaryFile(string ResultsFile, vector<double>& Vector){
+    ofstream ofile;
+    ofile.open(ResultsFile, ios::app | ios::binary);
+    ofile << setprecision(12);
+    for(double element : Vector){
+        ofile << element << endl;
+    }
+    ofile.close();
 }
 
 
@@ -1022,15 +1041,7 @@ void QuantumDot::writeLocalEnergyToFile(double LocalEnergy, string ResultsFile){
     ofile.close();
 }
 
-void QuantumDot::writeVectorToFile(string ResultsFile){
-    ofstream ofile;
-    ofile.open(ResultsFile, ios::app);
-    ofile << setprecision(12);
-    for(double element : m_localEnergy){
-        ofile << element << endl;
-    }
-    ofile.close();
-}
+
 
 void QuantumDot::resetSteepestDescentHelpVars(){
     m_ExpectationLocalEnergyDerivativeAlphaSecondTerm = 0.0;

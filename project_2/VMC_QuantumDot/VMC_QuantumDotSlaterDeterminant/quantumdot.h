@@ -2,6 +2,7 @@
 #define QUANTUMDOT_H
 #include "quantumstate.h"
 #include <vector>
+#include <string>
 #include "particle.h"
 #include <random>
 #include "vec3.h"
@@ -98,6 +99,7 @@ private:
     void applyVMCSteepestDescent(int);
     void steepestDescentCalculateWFderivativeOnVarParameters();
     void resetSteepestDescentHelpVars();
+    void writeVectorToBinaryFile(std::string, std::vector<double>&);
 
 
     int m_sm = -1;

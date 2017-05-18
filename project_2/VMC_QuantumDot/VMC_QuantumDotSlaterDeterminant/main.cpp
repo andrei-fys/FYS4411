@@ -8,9 +8,9 @@ int main(int numberOfArguments, char **argumentList)
 
     int NumberOfElectrons = 6;
     double HOStrenth = 1.0;
-    int MonteCarloSamples = 1000000;
+    int MonteCarloSamples = 100000000;
     double alpha = 1;
-    double beta = 1;
+    double beta = 0.4;
 
     int MonteCarloSamplesVariational = 100000;
     int MaxSteepestDescentIterations = 20;
@@ -26,8 +26,8 @@ int main(int numberOfArguments, char **argumentList)
 
     QuantumDot qdot(HOStrenth, NumberOfElectrons);
     qdot.setVariationalParameters(alpha, beta);
-    qdot.setCoulombInterraction(0);
-    qdot.setJastrowFactor(0);
+    qdot.setCoulombInterraction(1);
+    qdot.setJastrowFactor(1);
 
     /*qdot.applySteepestDescent(MonteCarloSamplesVariational,
                               MaxSteepestDescentIterations,
