@@ -7,7 +7,6 @@
 #include <random>
 #include "vec3.h"
 #include <armadillo>
-//#include "quantumforce.h"
 
 class QuantumDot
 {
@@ -18,18 +17,15 @@ public:
     double alpha;
     double beta;
 
-
     void getQuantumDotParticlesCoordinates();
     void getQuantumDotStates();
-
     void setVariationalParameters(double, double);
     void applyVMC(int);
-    void applyVMCstandard(int);
-    double Alpha() { return alpha; }
-    double Beta() { return beta; }
+    void applyVMCMPI(int);
     void setCoulombInterraction(int);
     void setJastrowFactor(int);
-
+    double Alpha() { return alpha; }
+    double Beta() { return beta; }
     void applySteepestDescent(int, int, double, double);
 
 private:
@@ -38,6 +34,30 @@ private:
     vec3 m_QForceOld;
     vec3 m_QForceNew;
 
+    int m_sm = -1;
+    double m_sqrtomega;
+    double m_alphaomega;
+    arma::mat m_SD_down_inverse;
+    arma::mat m_SD_up_inverse;
+    arma::mat m_SD_down;
+    arma::mat m_SD_up;
+    double m_RSD; //Ratio of SD´s
+    double m_RJ; //Ratio of Jartrow´s factors
+    double m_gradientDotProductJastrowAllParticles;
+    double m_LaplasianSD;
+    double m_LaplasianJastrow;
+    double m_DotProdGradientJastrowAndSD;
+    const double m_s = 0.5;
+    const double D = 0.5;     // difussion constant for importance sampling
+    const double dt = 0.001; // dt for importance sampling
+    int m_Coulomb;
+    int m_Jastrow;
+    double m_homega2;
+    double m_alpha2;
+    double m_alphaomega2;
+    double m_KineticEnergy;
+    double m_PotentialEnergy;
+    double m_MeanRelativeDistance;
 
     typedef double (*polynomialArray) (double x); //reference to function type
     polynomialArray * polyRefArray = new polynomialArray[4]; //array with refs to Hermite polynomials
@@ -88,11 +108,11 @@ private:
     double calculateSDRatio(size_t);
     double calculateGreenFunctionRatio(size_t);
     double calculateJastrowRatio(size_t);
+    double calculateLocalEnergy();
     void calculateQuantumForce(size_t);
     void calculateQuantumForceNew(size_t);
     void updateInverseSlaterDeterminant(size_t);
     void updateSlaterDeterminant(size_t);
-    double calculateLocalEnergy();
     void calculateDotProdGradientJastrowAndSD();
     void calculateLaplasianJastrow();
     void calculateLaplasianSD();
@@ -100,31 +120,6 @@ private:
     void steepestDescentCalculateWFderivativeOnVarParameters();
     void resetSteepestDescentHelpVars();
     void writeVectorToBinaryFile(std::string, std::vector<double>&);
-
-
-    int m_sm = -1;
-    double m_sqrtomega;
-    double m_alphaomega;
-    arma::mat m_SD_down_inverse;
-    arma::mat m_SD_up_inverse;
-    arma::mat m_SD_down;
-    arma::mat m_SD_up;
-    double m_RSD; //Ratio of SD´s
-    double m_RJ; //Ratio of Jartrow´s factors
-    double m_gradientDotProductJastrowAllParticles;
-    double m_LaplasianSD;
-    double m_LaplasianJastrow;
-    double m_DotProdGradientJastrowAndSD;
-    const double m_s = 0.5;
-    const double D = 0.5;     // difussion constant for importance sampling
-    const double dt = 0.001; // dt for importance sampling
-    int m_Coulomb;
-    int m_Jastrow;
-    double m_homega2;
-    double m_alpha2;
-    double m_alphaomega2;
-    double m_KineticEnergy;
-    double m_PotentialEnergy;
 
     //SteepestDescent variables
     double m_ExpectationLocalEnergyDerivativeAlphaSecondTerm;
@@ -137,35 +132,6 @@ private:
     double m_MeanLocalEnergyWFDerivativeBeta;
     double m_ExpectationLocalEnergyDerivativeAlpha;
     double m_ExpectationLocalEnergyDerivativeBeta;
-
-
-//    std::vector<double> m_localEnergy;
-
-
-
-
-
-
-
-
-
-
-/*
-
-    double calculateLocalEnergy();
-    double calculateLocalEnergyWithoutJastrow();
-
-    void writeLocalEnergyToFile(double, string);
-    void writeVectorToFile(string);
-    void resetSteepestDescentHelpVars();
-*/
-
-
-    //double calculateKineticEnergyNumerical();
-    //double m_RelativeDistanceOld;
-    //double m_RelativeDistanceNew;
-    //double computeRelativeDistance();
-
 
 };
 
