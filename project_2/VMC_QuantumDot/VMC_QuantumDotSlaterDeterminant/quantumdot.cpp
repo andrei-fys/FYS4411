@@ -653,7 +653,7 @@ void QuantumDot::applyVMC(int MCSamples){
         MeanLocalEnergy += Elocal;
         MeanLocalEnergy2 += Elocal2;
         LocalEnergyVector.push_back(Elocal);
-        if (i % 10000000 == 0){ //every 10 000 000 (ten millions) MC samples
+        if (i % 100000 == 0){ //every 10 000 000 (ten millions) MC samples
             writeVectorToBinaryFile(outputfile, LocalEnergyVector);
             LocalEnergyVector.clear();
         }
@@ -793,10 +793,11 @@ void QuantumDot::applySteepestDescent(int MonteCarloSamplesVariational,
 void QuantumDot::writeVectorToBinaryFile(string ResultsFile, vector<double>& Vector){
     ofstream ofile;
     ofile.open(ResultsFile, ios::app | ios::binary);
-    ofile << setprecision(12);
-    for(double element : Vector){
-        ofile << element << endl;
-    }
+    ofile.write(reinterpret_cast<const char*>(&Vector[0]), Vector.size() * sizeof(double));
+    //ofile << setprecision(12);
+    //for(double element : Vector){
+    //    ofile. << element << endl;
+    //}
     ofile.close();
 }
 
