@@ -191,7 +191,7 @@ void QuantumDot::calculateQuantumForce(size_t i){
     double firstsumY = 0.0;
     double secondsumX = 0.0;
     double secondsumY = 0.0;
-    if (m_Jastrow != 0) {
+    if (m_Jastrow == 1) {
         for(size_t k=0; k<i ; k++) {
             Particle *particle = m_particles[k];
             RelativeDistance = particle->position - moving_particle->position;
@@ -252,7 +252,7 @@ void QuantumDot::calculateQuantumForceNew(size_t i){
     double firstsumY = 0.0;
     double secondsumX = 0.0;
     double secondsumY = 0.0;
-    if (m_Jastrow != 0) {
+    if (m_Jastrow == 1) {
         for(size_t k=0; k<i ; k++) {
             Particle *particle = m_particles[k];
             RelativeDistance = particle->position - moving_particle->positionNew;
@@ -288,10 +288,6 @@ void QuantumDot::calculateQuantumForceNew(size_t i){
 
 double QuantumDot::calculateGreenFunctionRatio(size_t j){
     Particle *particle = m_particles[j];
-    vec3 QForceDiff;
-    QForceDiff = m_QForceOld - m_QForceNew;
-    //double GreenFun = D*dt*0.25*QForceDiff.lengthSquared() + (particle->position.x() - particle->positionNew.x())*(m_QForceOld.x() + m_QForceNew.x())*0.5 +
-    //(particle->position.y() - particle->positionNew.y())*(m_QForceOld.y() + m_QForceNew.y())*0.5;
     double GreenFun = 0.0;
     for (int i=0; i<2; i++){
         GreenFun += 0.5*(m_QForceOld[i] + m_QForceNew[i])*(D*dt*0.5*(m_QForceOld[i] - m_QForceNew[i]) - particle->positionNew[i] + particle->position[i]);
@@ -374,7 +370,7 @@ double QuantumDot::calculateSDRatio(size_t i){
 void QuantumDot::updateSlaterDeterminant(size_t i){
     QuantumDot::polynomialArray HermiteX;
     QuantumDot::polynomialArray HermiteY;
-    arma::mat D_rnew(m_shells.size(),m_shells.size());
+    //arma::mat D_rnew(m_shells.size(),m_shells.size());
     arma::mat tempDeterminant(m_shells.size(),m_shells.size());
     Particle *moving_particle = m_particles[i];
     if (moving_particle->spin == 1){
@@ -393,11 +389,12 @@ void QuantumDot::updateSlaterDeterminant(size_t i){
 
     if (moving_particle->spin == 1){
         m_SD_up = tempDeterminant;
+        m_SD_up_inverse = m_SD_up.i();
     } else {
         m_SD_down = tempDeterminant;
+        m_SD_down_inverse = m_SD_down.i();
     }    
-    m_SD_up_inverse = m_SD_up.i();
-    m_SD_down_inverse = m_SD_down.i();
+
 }
 
 void QuantumDot::updateInverseSlaterDeterminant(size_t i){
@@ -642,7 +639,7 @@ void QuantumDot::applyVMC(int MCSamples){
             double JRatio = calculateJastrowRatio(j);
             calculateQuantumForceNew(j);
             double GRatio = calculateGreenFunctionRatio(j);
-            double w = SDRatio*JRatio*GRatio;
+            double w = SDRatio*JRatio*SDRatio*JRatio*GRatio;
             double r = RandomNumberGenerator(gen);
             if (w >= r) {
                particle->position.setX(particle->positionNew.x());
