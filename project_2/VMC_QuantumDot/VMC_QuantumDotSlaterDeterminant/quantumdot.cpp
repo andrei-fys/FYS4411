@@ -548,13 +548,13 @@ void QuantumDot::calculateDotProdGradientJastrowAndSD(){
 
 void QuantumDot::calculateLaplasianJastrow(){
     vec3 RelativeDistance;
-    double firstsum = 0.0;
-    double secondsum = 0.0;
     double LaplasianJastrow = 0.0;
     for (size_t i=0; i<m_particles.size(); i++) {
         Particle *particle_i = m_particles[i];
         double abetaterm = 0.0;
         double abetaterm2 = 0.0;
+        double firstsum = 0.0;
+        double secondsum = 0.0;
         for(size_t k=0; k<i ; k++) {
             Particle *particle_k = m_particles[k];
             RelativeDistance = particle_k->position - particle_i->position;
