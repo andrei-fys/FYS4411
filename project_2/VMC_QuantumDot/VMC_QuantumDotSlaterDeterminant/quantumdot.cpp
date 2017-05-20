@@ -22,14 +22,23 @@ QuantumDot::QuantumDot(double h_omega, int ParticlesNumber){
     FirstDerivRefArrayX[1] = &QuantumDot::Fi1DerivativeX;
     FirstDerivRefArrayX[2] = &QuantumDot::Fi2DerivativeX;
     FirstDerivRefArrayX[3] = &QuantumDot::Fi3DerivativeX;
+    FirstDerivRefArrayX[4] = &QuantumDot::Fi4DerivativeX;
+    FirstDerivRefArrayX[5] = &QuantumDot::Fi5DerivativeX;
+
     FirstDerivRefArrayY[0] = &QuantumDot::Fi0DerivativeY;
     FirstDerivRefArrayY[1] = &QuantumDot::Fi1DerivativeY;
     FirstDerivRefArrayY[2] = &QuantumDot::Fi2DerivativeY;
     FirstDerivRefArrayY[3] = &QuantumDot::Fi3DerivativeY;
+    FirstDerivRefArrayY[4] = &QuantumDot::Fi4DerivativeY;
+    FirstDerivRefArrayY[5] = &QuantumDot::Fi5DerivativeY;
+
     SecondDerivRefArray[0] = &QuantumDot::Fi0Derivative2;
     SecondDerivRefArray[1] = &QuantumDot::Fi1Derivative2;
     SecondDerivRefArray[2] = &QuantumDot::Fi2Derivative2;
     SecondDerivRefArray[3] = &QuantumDot::Fi3Derivative2;
+    SecondDerivRefArray[4] = &QuantumDot::Fi4Derivative2;
+    SecondDerivRefArray[5] = &QuantumDot::Fi5Derivative2;
+
     AlphaDerivativeRefArray[0]=&QuantumDot::Fi0AlphaDerivative;
     AlphaDerivativeRefArray[1]=&QuantumDot::Fi1AlphaDerivative;
     AlphaDerivativeRefArray[2]=&QuantumDot::Fi2AlphaDerivative;

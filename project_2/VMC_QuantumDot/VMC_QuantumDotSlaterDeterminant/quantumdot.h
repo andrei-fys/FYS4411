@@ -62,12 +62,12 @@ private:
     typedef double (*polynomialArray) (double x); //reference to function type
     polynomialArray * polyRefArray = new polynomialArray[4]; //array with refs to Hermite polynomials
     typedef double (*FirstDerivativeArray) (double, double, double, double, double);
-    FirstDerivativeArray * FirstDerivRefArrayX = new FirstDerivativeArray[4]; //array with refs to first derivatives X
-    FirstDerivativeArray * FirstDerivRefArrayY = new FirstDerivativeArray[4]; //array with refs to first derivatives Y
+    FirstDerivativeArray * FirstDerivRefArrayX = new FirstDerivativeArray[6]; //array with refs to first derivatives X
+    FirstDerivativeArray * FirstDerivRefArrayY = new FirstDerivativeArray[6]; //array with refs to first derivatives Y
     typedef double (*SecondDerivativeArray) (double, double, double, double, double);
     typedef double (*AlphaDerivativeArray) (double, double, double, double, double);
     AlphaDerivativeArray *AlphaDerivativeRefArray = new AlphaDerivativeArray[6]; // array with refs to first derivatives wrt alpha
-    SecondDerivativeArray * SecondDerivRefArray = new SecondDerivativeArray[4]; //array with refs to second derivatives
+    SecondDerivativeArray * SecondDerivRefArray = new SecondDerivativeArray[6]; //array with refs to second derivatives
     //Hermite polinomials
     static double H0(double x) { return 1.0; }
     static double H1(double x) { return 2.0*x; }
@@ -77,17 +77,27 @@ private:
     static double Fi0DerivativeX(double x, double y, double exponent, double aom, double sqrtom) { return -exponent*x*aom; }
     static double Fi1DerivativeX(double x, double y, double exponent, double aom, double sqrtom) { return -2.0*exponent*sqrtom*x*y*aom; }
     static double Fi2DerivativeX(double x, double y, double exponent, double aom, double sqrtom) { return 2.0*exponent*sqrtom*(1.0-x*x*aom); }
-    static double Fi3DerivativeX(double x, double y, double exponent, double aom, double sqrtom) { return 1; }
+    static double Fi3DerivativeX(double x, double y, double exponent, double aom, double sqrtom) { return -2.0*aom*x*(2*sqrtom*sqrtom*y*y-1)*exponent; }
+    static double Fi4DerivativeX(double x, double y, double exponent, double aom, double sqrtom) { return -4.0*sqrtom*sqrtom*y*(aom*x*x-1)*exponent; }
+    static double Fi5DerivativeX(double x, double y, double exponent, double aom, double sqrtom) { return -2.0*sqrtom*sqrtom*x*(2.0*aom*x*x-aom/(sqrtom*sqrtom)-4)*exponent; }
+
     //gradient of the StateFunction Y
     static double Fi0DerivativeY(double x, double y, double exponent, double aom, double sqrtom) { return -exponent*y*aom; }
     static double Fi1DerivativeY(double x, double y, double exponent, double aom, double sqrtom) { return 2.0*exponent*sqrtom*(1.0-y*y*aom); }
     static double Fi2DerivativeY(double x, double y, double exponent, double aom, double sqrtom) { return -2.0*exponent*sqrtom*x*y*aom; }
-    static double Fi3DerivativeY(double x, double y, double exponent, double aom, double sqrtom) { return 1; }
+    static double Fi3DerivativeY(double x, double y, double exponent, double aom, double sqrtom) { return -2.0*aom*y*(2*aom*y*y-aom/(sqrtom*sqrtom)-4)*exponent; }
+    static double Fi4DerivativeY(double x, double y, double exponent, double aom, double sqrtom) { return -4.0*sqrtom*sqrtom*x*(aom*y*y-1)*exponent; }
+    static double Fi5DerivativeY(double x, double y, double exponent, double aom, double sqrtom) { return -2.0*aom*y*(2.0*sqrtom*sqrtom*x*x-1)*exponent; }
+
     //laplasian of the StateFunction
     static double Fi0Derivative2(double x, double y, double exponent, double aom, double sqrtom) { return exponent*aom*(aom*(x*x + y*y) - 2.0); }
     static double Fi1Derivative2(double x, double y, double exponent, double aom, double sqrtom) { return exponent*2.0*sqrtom*aom*y*(aom*(x*x + y*y)-4.0); }
     static double Fi2Derivative2(double x, double y, double exponent, double aom, double sqrtom) { return exponent*2.0*sqrtom*aom*x*(aom*(x*x + y*y)-4.0); }
-    static double Fi3Derivative2(double x, double y, double exponent, double aom, double sqrtom) { return 1; }
+    static double Fi3Derivative2(double x, double y, double exponent, double aom, double sqrtom) { return 2.0*sqrtom*sqrtom*exponent*((2.0*aom*y*y - aom/(sqrtom*sqrtom))*(aom*y*y + aom*x*x-2) - 4.0*(2.0*aom*y*y-1)); }
+    static double Fi4Derivative2(double x, double y, double exponent, double aom, double sqrtom) { return 4.0*aom*sqrtom*sqrtom*x*y*exponent*(aom*x*x+aom*y*y-6); }
+    static double Fi5Derivative2(double x, double y, double exponent, double aom, double sqrtom) { return 2.0*sqrtom*sqrtom*exponent*((2.0*aom*x*x-aom/(sqrtom*sqrtom))*(aom*y*y+aom*x*x-2)-4.0*(2.0*aom*x*x-1)); }
+
+
     //Derivatives for steepest decent
     static double Fi0AlphaDerivative(double x, double y, double exponent, double sqrtom, double omega) { return -0.5*omega*(x*x+y*y)*exponent; }
     static double Fi1AlphaDerivative(double x, double y, double exponent, double sqrtom, double omega) { return -omega*(x*x+y*y)*exponent*sqrtom*y; }
