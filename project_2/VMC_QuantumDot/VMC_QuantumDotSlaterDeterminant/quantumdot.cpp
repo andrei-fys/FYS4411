@@ -626,9 +626,9 @@ void QuantumDot::calculateLaplasianSD(){
 void QuantumDot::applyVMC(int MCSamples){
     setUpSlaterDeterminant();
     vector<double> LocalEnergyVector;
-    //string string_rank = to_string(my_rank);
+    string string_omega = to_string(homega);
     string outputfile = "LocalEnergy_";
-    //outputfile.append(string_rank);
+    outputfile.append(string_omega);
     random_device rd;
     mt19937_64 gen(rd());
     uniform_real_distribution<double> RandomNumberGenerator(0.0,1.0);
