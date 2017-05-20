@@ -736,7 +736,6 @@ void QuantumDot::applyVMCSteepestDescent(int MCSamples){
     m_PotentialEnergy = 0.0;
     int MC_counter = 0;
     int accept=0;
-    double ElocalSum = 0.0;
     double MeanLocalEnergy = 0.0;
     double MeanLocalEnergy2 = 0.0;
     for(int i=0; i<MCSamples; i++){
