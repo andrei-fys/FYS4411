@@ -665,7 +665,7 @@ void QuantumDot::applyVMC(int MCSamples){
         MeanLocalEnergy += Elocal;
         MeanLocalEnergy2 += Elocal2;
         LocalEnergyVector.push_back(Elocal);
-        if (i % 100000 == 0){ //every 10 000 000 (ten millions) MC samples
+        if (i % 10000000 == 0){ //every 10 000 000 (ten millions) MC samples
             writeVectorToBinaryFile(outputfile, LocalEnergyVector);
             LocalEnergyVector.clear();
         }
@@ -737,6 +737,8 @@ void QuantumDot::applyVMCSteepestDescent(int MCSamples){
     int MC_counter = 0;
     int accept=0;
     double ElocalSum = 0.0;
+    double MeanLocalEnergy = 0.0;
+    double MeanLocalEnergy2 = 0.0;
     for(int i=0; i<MCSamples; i++){
         for(size_t j=0; j< m_particles.size() ; j++) {
             Particle *particle = m_particles[j];
@@ -747,7 +749,7 @@ void QuantumDot::applyVMCSteepestDescent(int MCSamples){
             double JRatio = calculateJastrowRatio(j);
             calculateQuantumForceNew(j);
             double GRatio = calculateGreenFunctionRatio(j);
-            double w = SDRatio*JRatio*GRatio;
+            double w = SDRatio*JRatio*SDRatio*JRatio*GRatio;
             double r = RandomNumberGenerator(gen);
             if (w >= r) {
                particle->position.setX(particle->positionNew.x());
@@ -756,24 +758,31 @@ void QuantumDot::applyVMCSteepestDescent(int MCSamples){
                accept++;
             }
         }
+        double Elocal = calculateLocalEnergy();
+        double Elocal2 = Elocal*Elocal;
+        MeanLocalEnergy += Elocal;
+        MeanLocalEnergy2 += Elocal2;
         MC_counter++;
-        double LocalEnergy = calculateLocalEnergy();
         steepestDescentCalculateWFderivativeOnVarParameters();
         m_MeanLocalEnergyWFDerivativeAlpha += m_LocalEnergyWFDerivativeAlpha;
         m_MeanLocalEnergyWFDerivativeBeta += m_LocalEnergyWFDerivativeBeta;
-        m_ExpectationLocalEnergyDerivativeAlphaFirstTerm += m_LocalEnergyWFDerivativeAlpha*LocalEnergy;
-        m_ExpectationLocalEnergyDerivativeBetaFirstTerm += m_LocalEnergyWFDerivativeBeta*LocalEnergy;
-        ElocalSum += LocalEnergy;
+        m_ExpectationLocalEnergyDerivativeAlphaFirstTerm += m_LocalEnergyWFDerivativeAlpha*Elocal;
+        m_ExpectationLocalEnergyDerivativeBetaFirstTerm += m_LocalEnergyWFDerivativeBeta*Elocal;
     }
-    double Energy = (double) ElocalSum/MCSamples;
-    m_ExpectationLocalEnergyDerivativeAlphaSecondTerm = Energy*((double)m_MeanLocalEnergyWFDerivativeAlpha/MCSamples);
-    m_ExpectationLocalEnergyDerivativeBetaSecondTerm = Energy*((double)m_MeanLocalEnergyWFDerivativeBeta/MCSamples);
+    MeanLocalEnergy /= (double) MCSamples;
+    MeanLocalEnergy2 /= (double) MCSamples;
+    m_ExpectationLocalEnergyDerivativeAlphaSecondTerm = MeanLocalEnergy*((double)m_MeanLocalEnergyWFDerivativeAlpha/MCSamples);
+    m_ExpectationLocalEnergyDerivativeBetaSecondTerm = MeanLocalEnergy*((double)m_MeanLocalEnergyWFDerivativeBeta/MCSamples);
     m_ExpectationLocalEnergyDerivativeAlphaFirstTerm /= (double)MCSamples;
     m_ExpectationLocalEnergyDerivativeBetaFirstTerm /= (double)MCSamples;
     m_ExpectationLocalEnergyDerivativeAlpha = 2.0*(m_ExpectationLocalEnergyDerivativeAlphaFirstTerm-m_ExpectationLocalEnergyDerivativeAlphaSecondTerm);
     m_ExpectationLocalEnergyDerivativeBeta = 2.0*(m_ExpectationLocalEnergyDerivativeBetaFirstTerm-m_ExpectationLocalEnergyDerivativeBetaSecondTerm);
     cout << "Accept " << ((double)accept/(double)(m_particles.size()*MCSamples))*100.0 << endl;
-    cout << "Elocal " << Energy << endl;
+    cout << "Elocal " << MeanLocalEnergy << endl;
+    cout << "Variance " << (MeanLocalEnergy2 - MeanLocalEnergy*MeanLocalEnergy)/MCSamples << endl;
+    cout << "Kinetic " << (double) m_KineticEnergy/MCSamples << endl;
+    cout << "Potential " << (double) m_PotentialEnergy/MCSamples << endl;
+    cout << "Mean RelDist " << (double) m_MeanRelativeDistance/MCSamples << endl;
 }
 
 void QuantumDot::applySteepestDescent(int MonteCarloSamplesVariational,
@@ -820,7 +829,9 @@ void QuantumDot::applyVMCMPI(int MCSamples){
     setUpSlaterDeterminant();
     vector<double> LocalEnergyVector;
     string string_rank = to_string(my_rank);
+    string string_omega = to_string(homega);
     string outputfile = "LocalEnergy_";
+    outputfile.append(string_omega);
     outputfile.append(string_rank);
     random_device rd;
     mt19937_64 gen(rd());
