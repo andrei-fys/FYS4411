@@ -787,10 +787,10 @@ void QuantumDot::applyVMCSteepestDescent(int MCSamples){
     m_ExpectationLocalEnergyDerivativeBeta = 2.0*(m_ExpectationLocalEnergyDerivativeBetaFirstTerm-m_ExpectationLocalEnergyDerivativeBetaSecondTerm);
     cout << "Accept " << ((double)accept/(double)(m_particles.size()*MCSamples))*100.0 << endl;
     cout << "Elocal " << MeanLocalEnergy << endl;
-    cout << "Variance " << (MeanLocalEnergy2 - MeanLocalEnergy*MeanLocalEnergy)/MCSamples << endl;
-    cout << "Kinetic " << (double) m_KineticEnergy/MCSamples << endl;
-    cout << "Potential " << (double) m_PotentialEnergy/MCSamples << endl;
-    cout << "Mean RelDist " << (double) m_MeanRelativeDistance/MCSamples << endl;
+    //cout << "Variance " << (MeanLocalEnergy2 - MeanLocalEnergy*MeanLocalEnergy)/MCSamples << endl;
+    //cout << "Kinetic " << (double) m_KineticEnergy/MCSamples << endl;
+    //cout << "Potential " << (double) m_PotentialEnergy/MCSamples << endl;
+    //cout << "Mean RelDist " << (double) m_MeanRelativeDistance/MCSamples << endl;
 }
 
 void QuantumDot::applySteepestDescent(int MonteCarloSamplesVariational,
@@ -800,20 +800,34 @@ void QuantumDot::applySteepestDescent(int MonteCarloSamplesVariational,
     vec3 VarParametersOld;
     vec3 VarParametersNew;
     vec3 LocalEnergyExpectDerivative;
+    vec3 LocalEnergyExpectDerivativeOld;
+    vec3 VarParametersStep;
+    VarParametersStep.set(SteepestDescentStep,SteepestDescentStep,0);
     int i = 0;
     double Diff = 0.1;
     VarParametersOld.set(alpha, beta, 0.0);
-    while (i < MaxSteepestDescentIterations && Diff < tolerance ){
+    while (i < MaxSteepestDescentIterations || Diff < tolerance ){
         cout << "alpha " << alpha << endl;
         cout << "beta " << beta << endl;
         applyVMCSteepestDescent(MonteCarloSamplesVariational);
         LocalEnergyExpectDerivative.set(m_ExpectationLocalEnergyDerivativeAlpha, m_ExpectationLocalEnergyDerivativeBeta, 0.0);
-        VarParametersNew = VarParametersOld - LocalEnergyExpectDerivative*SteepestDescentStep;
+        VarParametersNew = VarParametersOld - LocalEnergyExpectDerivative*VarParametersStep;
+        setVariationalParameters(VarParametersNew[0], VarParametersNew[1]);
+        VarParametersOld.set(VarParametersNew[0], VarParametersNew[1],0.0);
+        LocalEnergyExpectDerivativeOld.set(m_ExpectationLocalEnergyDerivativeAlpha, m_ExpectationLocalEnergyDerivativeBeta, 0.0);
+        resetSteepestDescentHelpVars();
+
+        applyVMCSteepestDescent(MonteCarloSamplesVariational);
+        LocalEnergyExpectDerivative.set(m_ExpectationLocalEnergyDerivativeAlpha, m_ExpectationLocalEnergyDerivativeBeta, 0.0);
+        VarParametersStep[0] = VarParametersStep[0]*(abs(LocalEnergyExpectDerivative[0]/LocalEnergyExpectDerivativeOld[0]));
+        VarParametersStep[1] = VarParametersStep[1]*(abs(LocalEnergyExpectDerivative[1]/LocalEnergyExpectDerivativeOld[1]));
+        VarParametersNew = VarParametersOld - LocalEnergyExpectDerivative*VarParametersStep;
         setVariationalParameters(VarParametersNew[0], VarParametersNew[1]);
         VarParametersOld.set(VarParametersNew[0], VarParametersNew[1],0.0);
         resetSteepestDescentHelpVars();
         i++;
         cout << "Steepest Descent iteration # " << i << endl;
+        VarParametersStep.print();
         cout << "=================================" << endl;
 
     }
