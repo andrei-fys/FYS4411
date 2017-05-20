@@ -58,6 +58,7 @@ private:
     double m_KineticEnergy;
     double m_PotentialEnergy;
     double m_MeanRelativeDistance;
+    double m_LocalEnergy;
 
     typedef double (*polynomialArray) (double x); //reference to function type
     polynomialArray * polyRefArray = new polynomialArray[4]; //array with refs to Hermite polynomials
@@ -130,6 +131,7 @@ private:
     void steepestDescentCalculateWFderivativeOnVarParameters();
     void resetSteepestDescentHelpVars();
     void writeVectorToBinaryFile(std::string, std::vector<double>&);
+    double applyBisection(double, double, double, double);
 
     //SteepestDescent variables
     double m_ExpectationLocalEnergyDerivativeAlphaSecondTerm;
