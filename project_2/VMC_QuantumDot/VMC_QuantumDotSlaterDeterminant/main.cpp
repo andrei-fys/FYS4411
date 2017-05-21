@@ -6,16 +6,16 @@ using namespace std;
 int main(int numberOfArguments, char **argumentList)
 {
 
-    int NumberOfElectrons = 6;
+    int NumberOfElectrons = 12;
     double HOStrenth = 1.0;
-    int MonteCarloSamples = (int) 1e8;
-    double alpha = 0.705025;   //if steepest descent is used, values are initial values for var. params
-    double beta = 1.51852;
+    int MonteCarloSamples = (int) 1e7;
+    double alpha = 0.624204;   //if steepest descent is used, values are initial values for var. params
+    double beta = 2.01695;
 
-    int MonteCarloSamplesVariational = 100000;
+    int MonteCarloSamplesVariational = 1000000;
     int MaxSteepestDescentIterations = 200;
-    double SteepestDescentStep = 0.5;
-    double tolerance = 10e-6;
+    double SteepestDescentStep = 0.001;
+    double tolerance = 10e-5;
 
     // If a first argument is provided, it is the number of electrons
     if(numberOfArguments > 1) NumberOfElectrons = atoi(argumentList[1]);
@@ -29,12 +29,12 @@ int main(int numberOfArguments, char **argumentList)
     qdot.setCoulombInterraction(1);
     qdot.setJastrowFactor(1);
 
-    /*qdot.applySteepestDescent(MonteCarloSamplesVariational,
+    qdot.applySteepestDescent(MonteCarloSamplesVariational,
                               MaxSteepestDescentIterations,
                               SteepestDescentStep,
                               tolerance);
-*/
-    qdot.applyVMC(MonteCarloSamples);
+
+    //qdot.applyVMC(MonteCarloSamples);
     //qdot.getQuantumDotStates();
     //qdot.getQuantumDotParticlesCoordinates();
 
