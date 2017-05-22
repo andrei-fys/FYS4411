@@ -1,5 +1,4 @@
 #include "quantumdot.h"
-//#include "quantumforce.h"
 #include <iostream>
 #include <cmath>
 #include <iomanip>  //on Mac setprecision
@@ -675,7 +674,7 @@ void QuantumDot::applyVMC(int MCSamples){
         MeanLocalEnergy2 += Elocal2;
         LocalEnergyVector.push_back(Elocal);
         if (i % 10000000 == 0){ //every 10 000 000 (ten millions) MC samples
-            //writeVectorToBinaryFile(outputfile, LocalEnergyVector);
+            writeVectorToBinaryFile(outputfile, LocalEnergyVector);
             LocalEnergyVector.clear();
         }
         MC_counter++;
@@ -788,10 +787,6 @@ void QuantumDot::applyVMCSteepestDescent(int MCSamples){
     cout << "Accept " << ((double)accept/(double)(m_particles.size()*MCSamples))*100.0 << endl;
     cout << "Elocal " << MeanLocalEnergy << endl;
     m_LocalEnergy = MeanLocalEnergy;
-    //cout << "Variance " << (MeanLocalEnergy2 - MeanLocalEnergy*MeanLocalEnergy)/MCSamples << endl;
-    //cout << "Kinetic " << (double) m_KineticEnergy/MCSamples << endl;
-    //cout << "Potential " << (double) m_PotentialEnergy/MCSamples << endl;
-    //cout << "Mean RelDist " << (double) m_MeanRelativeDistance/MCSamples << endl;
 }
 
 
@@ -900,6 +895,7 @@ void QuantumDot::applyVMCMPI(int MCSamples, int numprocs){
         }
         MC_counter++;
     }
+
     MeanLocalEnergy /= (double) MCSamples;
     MeanLocalEnergy2 /= (double) MCSamples;
     double variance_slave = (MeanLocalEnergy2 - MeanLocalEnergy*MeanLocalEnergy)/MCSamples ;
@@ -907,13 +903,6 @@ void QuantumDot::applyVMCMPI(int MCSamples, int numprocs){
     double kinetic_slave = (double) m_KineticEnergy/MCSamples;
     double potential_slave = (double) m_PotentialEnergy/MCSamples;
     double reldist_slave = (double) m_MeanRelativeDistance/MCSamples;
-    //cout << "Accept " << ((double)accept/(double)(m_particles.size()*MCSamples))*100.0 << endl;
-    //cout << "Elocal " << MeanLocalEnergy << endl;
-    //cout << "Variance " << (MeanLocalEnergy2 - MeanLocalEnergy*MeanLocalEnergy)/MCSamples << endl;
-    //cout << "Kinetic " << (double) m_KineticEnergy/MCSamples << endl;
-    //cout << "Potential " << (double) m_PotentialEnergy/MCSamples << endl;
-    //cout << "Mean RelDist " << (double) m_MeanRelativeDistance/MCSamples << endl;
-
 
     double master_Energy = 0.0;
     double accept_master = 0.0;
@@ -921,12 +910,14 @@ void QuantumDot::applyVMCMPI(int MCSamples, int numprocs){
     double kinetic_master = 0.0;
     double potential_master = 0.0;
     double reldist_master = 0.0;
+
     MPI_Reduce(&MeanLocalEnergy, &master_Energy, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
     MPI_Reduce(&accept_slave, &accept_master, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
     MPI_Reduce(&variance_slave, &variance_master, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);    
     MPI_Reduce(&kinetic_slave, &kinetic_master, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
     MPI_Reduce(&potential_slave, &potential_master, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
     MPI_Reduce(&reldist_slave, &reldist_master, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+
     if (my_rank == 0){
         cout << "alpha "  << alpha << endl;
         cout << "beta " << beta << endl;

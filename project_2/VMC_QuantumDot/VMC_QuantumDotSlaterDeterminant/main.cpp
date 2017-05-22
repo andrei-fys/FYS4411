@@ -14,6 +14,7 @@ int main(int numberOfArguments, char **argumentList)
 
     int MonteCarloSamplesVariational = 1000000;
     int MaxSteepestDescentIterations = 200;
+    int RunSteepestDescent = 0;
     double SteepestDescentStep = 0.1;
     double tolerance = 10e-8;
 
@@ -31,17 +32,20 @@ int main(int numberOfArguments, char **argumentList)
     if(numberOfArguments > 6) beta = atof(argumentList[6]);
     // If a seventh argument is provided, it is the Steepest Descent initial step
     if(numberOfArguments > 7) SteepestDescentStep = atof(argumentList[7]);
+    // If a seventh argument is provided, it is the Steepest Descent trigger, 0/1 (1 - to run)
+    if(numberOfArguments > 8) RunSteepestDescent = atof(argumentList[8]);
 
     QuantumDot qdot(HOStrenth, NumberOfElectrons);
     qdot.setVariationalParameters(alpha, beta);
     qdot.setCoulombInterraction(1);
     qdot.setJastrowFactor(1);
 
-    /*qdot.applySteepestDescent(MonteCarloSamplesVariational,
-                              MaxSteepestDescentIterations,
-                              SteepestDescentStep,
-                              tolerance);
-    */
+    if (RunSteepestDescent == 1) {
+        qdot.applySteepestDescent(MonteCarloSamplesVariational,
+                                  MaxSteepestDescentIterations,
+                                  SteepestDescentStep,
+                                  tolerance);
+    }
     //qdot.applyVMC(MonteCarloSamples);
     //qdot.getQuantumDotStates();
     //qdot.getQuantumDotParticlesCoordinates();
