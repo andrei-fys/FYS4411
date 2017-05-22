@@ -851,7 +851,8 @@ void QuantumDot::applyVMCMPI(int MCSamples, int numprocs){
     string string_rank = to_string(my_rank);
     string string_omega = to_string(homega);
     string outputfile = "LocalEnergy_";
-    outputfile.append(string_omega);
+    outputfile.append(string_omega); outputfile.append("_");
+    outputfile.append(to_string(m_particles.size())); outputfile.append("_el_");
     outputfile.append(string_rank);
     random_device rd;
     mt19937_64 gen(rd());
