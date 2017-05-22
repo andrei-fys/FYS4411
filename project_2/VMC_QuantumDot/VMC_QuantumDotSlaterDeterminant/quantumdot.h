@@ -7,6 +7,7 @@
 #include <random>
 #include "vec3.h"
 #include <armadillo>
+#include <ctime>
 
 class QuantumDot
 {
@@ -21,7 +22,7 @@ public:
     void getQuantumDotStates();
     void setVariationalParameters(double, double);
     void applyVMC(int);
-    void applyVMCMPI(int);
+    void applyVMCMPI(int, int);
     void setCoulombInterraction(int);
     void setJastrowFactor(int);
     double Alpha() { return alpha; }

@@ -4,7 +4,7 @@
 #include <cmath>
 #include <iomanip>  //on Mac setprecision
 #include <fstream>
-//#include "mpi.h"
+#include "mpi.h"
 
 using namespace std;
 
@@ -817,13 +817,14 @@ void QuantumDot::applySteepestDescent(int MonteCarloSamplesVariational,
         LocalEnergyNew = m_LocalEnergy;
         LocalEnergyExpectDerivative.set(m_ExpectationLocalEnergyDerivativeAlpha, m_ExpectationLocalEnergyDerivativeBeta, 0.0);
         if (LocalEnergyNew >= LocalEnergyOld - 0.5*SteepestDescentStep*(LocalEnergyExpectDerivative.lengthSquared())){
-            SteepestDescentStep *= 0.7;
+            SteepestDescentStep *= 0.4;
         }
         cout << "Step " << SteepestDescentStep << endl;
         VarParametersNew = VarParametersOld - LocalEnergyExpectDerivative*SteepestDescentStep;
         setVariationalParameters(VarParametersNew[0], VarParametersNew[1]);
         resetSteepestDescentHelpVars();
         if (SteepestDescentStep < tolerance){
+            cout << "=============finito===============" << endl;
             break;
         }
         i++;
@@ -841,9 +842,11 @@ void QuantumDot::writeVectorToBinaryFile(string ResultsFile, vector<double>& Vec
     ofile.close();
 }
 
-/*
-void QuantumDot::applyVMCMPI(int MCSamples){
 
+void QuantumDot::applyVMCMPI(int MCSamples, int numprocs){
+    int my_rank;
+    typedef std::chrono::high_resolution_clock myclock;
+    myclock::time_point beginning = myclock::now();
     MPI_Init (NULL, NULL);
     MPI_Comm_size (MPI_COMM_WORLD, &numprocs);
     MPI_Comm_rank (MPI_COMM_WORLD, &my_rank);
@@ -857,6 +860,7 @@ void QuantumDot::applyVMCMPI(int MCSamples){
     outputfile.append(string_rank);
     random_device rd;
     mt19937_64 gen(rd());
+    gen.seed((myclock::now() - beginning).count()*(double)my_rank);
     uniform_real_distribution<double> RandomNumberGenerator(0.0,1.0);
     normal_distribution<double> GaussianBlur(0.0, 1.0);
     m_KineticEnergy = 0.0;
@@ -900,6 +904,9 @@ void QuantumDot::applyVMCMPI(int MCSamples){
     MeanLocalEnergy2 /= (double) MCSamples;
     double variance_slave = (MeanLocalEnergy2 - MeanLocalEnergy*MeanLocalEnergy)/MCSamples ;
     double accept_slave = ((double)accept/(double)(m_particles.size()*MCSamples))*100.0;
+    double kinetic_slave = (double) m_KineticEnergy/MCSamples;
+    double potential_slave = (double) m_PotentialEnergy/MCSamples;
+    double reldist_slave = (double) m_MeanRelativeDistance/MCSamples;
     //cout << "Accept " << ((double)accept/(double)(m_particles.size()*MCSamples))*100.0 << endl;
     //cout << "Elocal " << MeanLocalEnergy << endl;
     //cout << "Variance " << (MeanLocalEnergy2 - MeanLocalEnergy*MeanLocalEnergy)/MCSamples << endl;
@@ -911,17 +918,41 @@ void QuantumDot::applyVMCMPI(int MCSamples){
     double master_Energy = 0.0;
     double accept_master = 0.0;
     double variance_master = 0.0;
+    double kinetic_master = 0.0;
+    double potential_master = 0.0;
+    double reldist_master = 0.0;
     MPI_Reduce(&MeanLocalEnergy, &master_Energy, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
     MPI_Reduce(&accept_slave, &accept_master, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
-    MPI_Reduce(&variance_slave, &variance_master, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+    MPI_Reduce(&variance_slave, &variance_master, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);    
+    MPI_Reduce(&kinetic_slave, &kinetic_master, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+    MPI_Reduce(&potential_slave, &potential_master, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+    MPI_Reduce(&reldist_slave, &reldist_master, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
     if (my_rank == 0){
         cout << "alpha "  << alpha << endl;
         cout << "beta " << beta << endl;
         cout << "Energy " << (double) master_Energy/numprocs << endl;
         cout << "Variance " << (double) variance_master/numprocs << endl;
+        cout << "Kinetic " << (double) kinetic_master/numprocs << endl;
+        cout << "Potential " << (double) potential_master/numprocs << endl;
+        cout << "Mean RelDist " << (double) reldist_master/numprocs << endl;
         cout << "Accept % :" << (double) accept_master/numprocs << endl;
         cout << "Total number of MC samples " << MCSamples*numprocs << endl;
+        outputfile.append("_results");
+        ofstream ofile;
+        ofile.open(outputfile, ios::app);
+        ofile << setprecision(12);
+        ofile << "omega "  << homega << endl;
+        ofile << "alpha "  << alpha << endl;
+        ofile << "beta " << beta << endl;
+        ofile << "Energy " << (double) master_Energy/numprocs << endl;
+        ofile << "Variance " << (double) variance_master/numprocs << endl;
+        ofile << "Kinetic " << (double) kinetic_master/numprocs << endl;
+        ofile << "Potential " << (double) potential_master/numprocs << endl;
+        ofile << "Mean RelDist " << (double) reldist_master/numprocs << endl;
+        ofile << "Accept % :" << (double) accept_master/numprocs << endl;
+        ofile << "Total number of MC samples " << MCSamples*numprocs << endl;
+        ofile.close();
     }
     MPI_Finalize();
 }
-*/
+
