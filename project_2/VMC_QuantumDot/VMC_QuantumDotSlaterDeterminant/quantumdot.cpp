@@ -838,7 +838,7 @@ void QuantumDot::writeVectorToBinaryFile(string ResultsFile, vector<double>& Vec
 }
 
 
-void QuantumDot::applyVMCMPI(int MCSamples, int numprocs){
+void QuantumDot::applyVMCMPI(double MCSamples, int numprocs){
     int my_rank;
     typedef std::chrono::high_resolution_clock myclock;
     myclock::time_point beginning = myclock::now();

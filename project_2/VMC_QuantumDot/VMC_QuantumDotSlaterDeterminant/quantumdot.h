@@ -22,7 +22,7 @@ public:
     void getQuantumDotStates();
     void setVariationalParameters(double, double);
     void applyVMC(int);
-    void applyVMCMPI(int, int);
+    void applyVMCMPI(double, int);
     void setCoulombInterraction(int);
     void setJastrowFactor(int);
     double Alpha() { return alpha; }

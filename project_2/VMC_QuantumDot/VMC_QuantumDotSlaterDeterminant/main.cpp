@@ -24,16 +24,17 @@ int main(int numberOfArguments, char **argumentList)
     if(numberOfArguments > 2) HOStrenth = atof(argumentList[2]);
     // If a third argument is provided, it is the number of Monte Carlo samples
     if(numberOfArguments > 3) MonteCarloSamples = atof(argumentList[3]);
-    // If a fourth argument is provided, it is the number of Monte Carlo samples for Steepest Descent
-    if(numberOfArguments > 4) MonteCarloSamplesVariational = atof(argumentList[4]);
-    // If a fifth argument is provided, it is the first variational parameter - alpha
-    if(numberOfArguments > 5) alpha = atof(argumentList[5]);
-    // If a sixth argument is provided, it is the second variational parameter - beta
-    if(numberOfArguments > 6) beta = atof(argumentList[6]);
-    // If a seventh argument is provided, it is the Steepest Descent initial step
-    if(numberOfArguments > 7) SteepestDescentStep = atof(argumentList[7]);
-    // If a seventh argument is provided, it is the Steepest Descent trigger, 0/1 (1 - to run)
-    if(numberOfArguments > 8) RunSteepestDescent = atof(argumentList[8]);
+    // If a fourth argument is provided, it is the first variational parameter - alpha
+    if(numberOfArguments > 4) alpha = atof(argumentList[4]);
+    // If a fivth argument is provided, it is the second variational parameter - beta
+    if(numberOfArguments > 5) beta = atof(argumentList[5]);
+
+    // If a sixth argument is provided, it is the Steepest Descent trigger, 0/1 (1 - to run)
+    if(numberOfArguments > 6) RunSteepestDescent = atof(argumentList[6]);
+    // If a seventh argument is provided, it is the number of Monte Carlo samples for Steepest Descent
+    if(numberOfArguments > 7) MonteCarloSamplesVariational = atof(argumentList[7]);
+    // If a eighth argument is provided, it is the Steepest Descent initial step
+    if(numberOfArguments > 8) SteepestDescentStep = atof(argumentList[8]);
 
     QuantumDot qdot(HOStrenth, NumberOfElectrons);
     qdot.setVariationalParameters(alpha, beta);
@@ -50,5 +51,5 @@ int main(int numberOfArguments, char **argumentList)
     //qdot.getQuantumDotStates();
     //qdot.getQuantumDotParticlesCoordinates();
 
-    qdot.applyVMCMPI(MonteCarloSamples, numprocs);
+    qdot.applyVMCMPI((double)MonteCarloSamples, numprocs);
 }
