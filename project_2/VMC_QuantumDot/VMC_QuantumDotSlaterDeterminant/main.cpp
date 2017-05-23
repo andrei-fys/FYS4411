@@ -8,7 +8,7 @@ int main(int numberOfArguments, char **argumentList)
     int numprocs;
     int NumberOfElectrons = 6;
     double HOStrenth = 1;
-    int MonteCarloSamples = (int) 1e8;
+    int MonteCarloSamples = (long int) 1e8;
     double alpha = 0.701856;   //if steepest descent is used, values are initial values for var. params
     double beta = 1.70348;
 
@@ -51,5 +51,5 @@ int main(int numberOfArguments, char **argumentList)
     //qdot.getQuantumDotStates();
     //qdot.getQuantumDotParticlesCoordinates();
 
-    qdot.applyVMCMPI((double)MonteCarloSamples, numprocs);
+    qdot.applyVMCMPI(MonteCarloSamples, numprocs);
 }
