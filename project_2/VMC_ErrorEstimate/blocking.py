@@ -4,13 +4,13 @@
 
 import sys
 import numpy as np
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 
-input_one = sys.argv[1]
-input_two = sys.argv[2]
+dataset = np.fromfile(sys.argv[1])
 
-dataset_one = np.loadtxt(input_one)
-dataset_two = np.loadtxt(input_two)
+
+for i in range(2, len(sys.argv)):
+    np.concatenate((dataset, np.fromfile(sys.argv[i])), axis=0)
 
 def sumEverySecond(dataset):
    dataset = [sum(dataset[current: current+2]) for current in range(0, len(dataset), 2)]
@@ -20,35 +20,20 @@ def blockingAnalisys(dataset):
    std = []
    block = []
    i = 1
-   sizeOfDataset = len(dataset)
-   std.append(np.var(dataset)/len(dataset))
+   sizeOfInitialDataset = len(dataset)
+   sizeOfDataset =  sizeOfInitialDataset
+   std.append(np.var(dataset)/sizeOfDataset)
    block.append(i)
-   while (sizeOfDataset > 256):
+   while (sizeOfDataset > 20):
       tempArray = sumEverySecond(dataset)
       dataset = tempArray
       sizeOfDataset = len(dataset)
-      std.append(np.var(dataset)/len(dataset))
+      std.append(np.var(dataset)/sizeOfInitialDataset)
       i += 1
       block.append(i)
    return std, block
 
-std_one,block_one = blockingAnalisys(dataset_one)
-std_two,block_two = blockingAnalisys(dataset_two)
+std_one,block_one = blockingAnalisys(dataset)
 
-#print(np.var(dataset_one)/len(dataset_one))
-#print(np.var(dataset_two)/len(dataset_two))
+np.savetxt('blocking.csv', (block_one,std_one))
 
-fig1 = plt.figure()
-ax1 = fig1.add_subplot(111)
-ax1.plot(block_one, std_one, color="black",label=r'$Imp S$')
-ax1.plot(block_two, std_two, color="red",label=r'$St$')
-plt.grid()
-
-plt.legend(loc="lower right", fontsize=18)
-#
-plt.xlabel('block', fontsize=20)
-plt.ylabel(r'$\sigma^2$', fontsize=20)
-#
-plt.draw()
-plt.show()
-##plt.savefig(filename3)
