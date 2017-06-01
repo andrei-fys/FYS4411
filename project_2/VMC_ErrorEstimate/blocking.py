@@ -24,7 +24,7 @@ def blockingAnalisys(dataset):
    sizeOfDataset =  sizeOfInitialDataset
    std.append(np.var(dataset)/sizeOfDataset)
    block.append(i)
-   while (sizeOfDataset > 20):
+   while (sizeOfDataset > 2):
       tempArray = sumEverySecond(dataset)
       dataset = tempArray
       sizeOfDataset = len(dataset)
@@ -35,5 +35,6 @@ def blockingAnalisys(dataset):
 
 std_one,block_one = blockingAnalisys(dataset)
 
-np.savetxt('blocking.csv', (block_one,std_one))
+np.savetxt('blocking_block', block_one)
+np.savetxt('blocking_std', std_one)
 
