@@ -26,8 +26,8 @@ Run compiled version simply with:
 ```bash
 mpirun -n 4 ./VMC_QuantumDotSD
 ```
-It will give following output and writes file [output for 6 electrons](project_2/VMC_QuantumDot/VMC_QuantumDotSlaterDeterminant_benchmarks/LocalEnergy_1.000000_6_el_0_results):
-
+It will give following output and writes file [output for 6 electrons](LocalEnergy_1.000000_6_el_0_results):
+```bash
 alpha 0.701856
 beta 1.70348
 Energy 20.4851
@@ -37,4 +37,4 @@ Potential 17.1408
 Mean RelDist 6.58931
 Accept % :99.9873
 Total number of MC samples 4000000
-
+```
