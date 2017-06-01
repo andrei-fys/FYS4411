@@ -4,6 +4,8 @@
 #include <iomanip>  //on Mac setprecision
 #include <fstream>
 #include "mpi.h"
+#include "time.h"
+
 
 using namespace std;
 
@@ -648,7 +650,10 @@ void QuantumDot::applyVMC(int MCSamples){
     int accept=0;
     double MeanLocalEnergy = 0.0;
     double MeanLocalEnergy2 = 0.0;
+    //clock_t start, finish;
+    //double timeused = 0.0;
     for(int i=0; i<MCSamples; i++){
+        //start = clock();
         for(size_t j=0; j< m_particles.size() ; j++) {
             Particle *particle = m_particles[j];
             calculateQuantumForce(j);
@@ -672,12 +677,16 @@ void QuantumDot::applyVMC(int MCSamples){
         double Elocal2 = Elocal*Elocal;
         MeanLocalEnergy += Elocal;
         MeanLocalEnergy2 += Elocal2;
-        LocalEnergyVector.push_back(Elocal);
-        if (i % 10000000 == 0){ //every 10 000 000 (ten millions) MC samples
-            writeVectorToBinaryFile(outputfile, LocalEnergyVector);
-            LocalEnergyVector.clear();
-        }
+        //uncomment for blocking analisys
+        //LocalEnergyVector.push_back(Elocal);
+        //if (i % 10000000 == 0){ //every 10 000 000 (ten millions) MC samples
+        //    writeVectorToBinaryFile(outputfile, LocalEnergyVector);
+        //    LocalEnergyVector.clear();
+        //}
         MC_counter++;
+        //finish = clock();
+        //timeused += (double) (finish - start)/(CLOCKS_PER_SEC );
+
     }
     MeanLocalEnergy /= (double) MCSamples;
     MeanLocalEnergy2 /= (double) MCSamples;
@@ -687,6 +696,8 @@ void QuantumDot::applyVMC(int MCSamples){
     cout << "Kinetic " << (double) m_KineticEnergy/MCSamples << endl;
     cout << "Potential " << (double) m_PotentialEnergy/MCSamples << endl;
     cout << "Mean RelDist " << (double) m_MeanRelativeDistance/MCSamples << endl;
+    cout << setiosflags(ios::showpoint | ios::uppercase);
+    //cout << setprecision(10) << setw(20) << "Time used  for VMC computation=" << (double) timeused/MCSamples  << endl;
 }
 
 void QuantumDot::resetSteepestDescentHelpVars(){
@@ -845,6 +856,7 @@ void QuantumDot::applyVMCMPI(long int MCSamples, int numprocs){
     MPI_Init (NULL, NULL);
     MPI_Comm_size (MPI_COMM_WORLD, &numprocs);
     MPI_Comm_rank (MPI_COMM_WORLD, &my_rank);
+    double StartTime = MPI_Wtime();
 
     setUpSlaterDeterminant();
     vector<double> LocalEnergyVector;
@@ -889,11 +901,11 @@ void QuantumDot::applyVMCMPI(long int MCSamples, int numprocs){
         double Elocal2 = Elocal*Elocal;
         MeanLocalEnergy += Elocal;
         MeanLocalEnergy2 += Elocal2;
-        LocalEnergyVector.push_back(Elocal);
-        if (i % 10000000 == 0){ //every 10 000 000 (ten millions) MC samples
-            writeVectorToBinaryFile(outputfile, LocalEnergyVector);
-            LocalEnergyVector.clear();
-        }
+        //LocalEnergyVector.push_back(Elocal); uncomment for blocking analisys
+        //if (i % 10000000 == 0){ //every 10 000 000 (ten millions) MC samples
+        //    writeVectorToBinaryFile(outputfile, LocalEnergyVector);
+        //    LocalEnergyVector.clear();
+        //}
         MC_counter++;
     }
 
@@ -918,7 +930,8 @@ void QuantumDot::applyVMCMPI(long int MCSamples, int numprocs){
     MPI_Reduce(&kinetic_slave, &kinetic_master, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
     MPI_Reduce(&potential_slave, &potential_master, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
     MPI_Reduce(&reldist_slave, &reldist_master, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
-
+    double EndTime = MPI_Wtime();
+    double TotalTime = EndTime-StartTime;
     if (my_rank == 0){
         cout << "alpha "  << alpha << endl;
         cout << "beta " << beta << endl;
@@ -929,6 +942,7 @@ void QuantumDot::applyVMCMPI(long int MCSamples, int numprocs){
         cout << "Mean RelDist " << (double) reldist_master/numprocs << endl;
         cout << "Accept % :" << (double) accept_master/numprocs << endl;
         cout << "Total number of MC samples " << MCSamples*numprocs << endl;
+        cout << "Time MPI = " <<  TotalTime  << endl;
         outputfile.append("_results");
         ofstream ofile;
         ofile.open(outputfile, ios::app);
@@ -947,4 +961,5 @@ void QuantumDot::applyVMCMPI(long int MCSamples, int numprocs){
     }
     MPI_Finalize();
 }
+
 

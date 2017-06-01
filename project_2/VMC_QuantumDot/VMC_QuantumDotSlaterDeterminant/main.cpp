@@ -5,10 +5,12 @@ using namespace std;
 
 int main(int numberOfArguments, char **argumentList)
 {
+    clock_t start, finish;
+    start = clock();
     int numprocs;
     int NumberOfElectrons = 6;
     double HOStrenth = 1;
-    int MonteCarloSamples = (long int) 1e8;
+    int MonteCarloSamples = (long int) 1e6;
     double alpha = 0.701856;   //if steepest descent is used, values are initial values for var. params
     double beta = 1.70348;
 
@@ -28,7 +30,6 @@ int main(int numberOfArguments, char **argumentList)
     if(numberOfArguments > 4) alpha = atof(argumentList[4]);
     // If a fivth argument is provided, it is the second variational parameter - beta
     if(numberOfArguments > 5) beta = atof(argumentList[5]);
-
     // If a sixth argument is provided, it is the Steepest Descent trigger, 0/1 (1 - to run)
     if(numberOfArguments > 6) RunSteepestDescent = atof(argumentList[6]);
     // If a seventh argument is provided, it is the number of Monte Carlo samples for Steepest Descent
@@ -47,9 +48,13 @@ int main(int numberOfArguments, char **argumentList)
                                   SteepestDescentStep,
                                   tolerance);
     }
+
+
     //qdot.applyVMC(MonteCarloSamples);
-    //qdot.getQuantumDotStates();
-    //qdot.getQuantumDotParticlesCoordinates();
+
 
     qdot.applyVMCMPI(MonteCarloSamples, numprocs);
+    finish = clock();
+    double timeused = (double) (finish - start)/(CLOCKS_PER_SEC );
+    cout << "Time total = " << timeused  << endl;
 }
